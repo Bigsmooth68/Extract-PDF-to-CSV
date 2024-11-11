@@ -34,7 +34,6 @@ def analyse_livret(text):
 
 def analyse_autres_comptes(date_solde, text):
     for line in text:
-        print(line)
         if 'LIVRET DE DEVELOPPEMENT DURABLE SOLIDAIRE' in line:
             match = re.search(r'(\d.+\d) .+EUR .(\d{1,3}(\.?\d{3})*,\d+)', line)
             if match:
