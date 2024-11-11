@@ -29,7 +29,6 @@ def analyse_livret(text):
             solde = match[2]
             solde = solde.replace('.','').replace(',','.')
             solde = float(solde)
-            # print(f'{numero_compte},{date_solde},{solde}')
             return [date_solde, numero_compte, solde]    
 
 def analyse_autres_comptes(date_solde, text):
@@ -57,24 +56,42 @@ def main():
         print(f'Processing {file} ')
         reader = PdfReader(file)
 
+        numero_compte = None
+
         for page in reader.pages:
 
             content = page.extract_text(extraction_mode='plain')
-            livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
-            ldd = extract_sections(content, 'SITUATION DE VOS AUTRES COMPTES', 'Sous réserve des extournes ou annulations éventuelles')
 
-            solde = analyse_livret(livret)
-            if solde:
-                tab_date.append(solde[0])
-                tab_solde.append(solde[2])
-                # result_file.writelines(f"INSERT INTO epargne (date, compte, solde) VALUES (TO_DATE('{solde[0]}','DD/MM/YYYY'), '{solde[1]}', '{solde[2]}');\n")
-                lines_found += 1
-                solde_ldd = analyse_autres_comptes(solde[0], ldd)
-                if solde_ldd:
-                    tab_date.append(solde_ldd[0])
-                    tab_solde.append(solde_ldd[2])
-                    result_file.writelines(f"INSERT INTO epargne (date, compte, solde) VALUES (TO_DATE('{solde_ldd[0]}','DD/MM/YYYY'), '{solde_ldd[1]}', '{solde_ldd[2]}');\n")
+            if 'Portefeuille valoris' in file.name:
+                match = re.search(r' au (.+).pdf', file.name)
+                date_solde = match[1]
+                for line in content.splitlines():
+                    if numero_compte is None and ' 000' in line:
+                        match = re.search(r' (000\d+)$', line)
+                        if match:
+                            numero_compte = match[1]
+                    if 'TOTAL DU COMPTE TITRES' in line:
+                        match = re.search(r'TOTAL DU COMPTE TITRES (\d{1,3}( ?\d{3})*,\d+)', line)
+                        if match:
+                            solde = match[1].replace(' ','').replace(',','.')
+                            result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', 'PEA');\n")
+                            lines_found += 1
+            else:
+                livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
+                ldd = extract_sections(content, 'SITUATION DE VOS AUTRES COMPTES', 'Sous réserve des extournes ou annulations éventuelles')
+
+                solde = analyse_livret(livret)
+                if solde:
+                    tab_date.append(solde[0])
+                    tab_solde.append(solde[2])
+                    result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{solde[0]}','DD/MM/YYYY'), '{solde[1]}', '{solde[2]}', 'LIVRET');\n")
                     lines_found += 1
+                    solde_ldd = analyse_autres_comptes(solde[0], ldd)
+                    if solde_ldd:
+                        tab_date.append(solde_ldd[0])
+                        tab_solde.append(solde_ldd[2])
+                        result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{solde_ldd[0]}','DD/MM/YYYY'), '{solde_ldd[1]}', '{solde_ldd[2]}', 'LDD');\n")
+                        lines_found += 1
 
 
     result_file.close()
