@@ -1,7 +1,7 @@
 # importing required classes
 from pypdf import PdfReader
 from pathlib import Path
-import re
+import re, datetime
 import matplotlib.pyplot as plt
 
 def extract_sections(text, start_pattern: str, end_pattern: str):
@@ -41,6 +41,15 @@ def analyse_autres_comptes(date_solde, text):
                 solde = solde.replace('.','').replace(',','.').replace('+','')
                 solde = float(solde)
                 return [date_solde, numero_compte, solde]    
+
+def aligner_date(str):
+    dt = datetime.datetime.strptime(str,'%Y-%m-%d')
+    if dt.day > 25:
+        new_date = (dt.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
+    else:
+        new_date = dt.replace(day=1)
+    new_str = new_date.strftime('%Y-%m-%d')
+    return (f'{str} => {new_str}')
 
 ############## 
 
