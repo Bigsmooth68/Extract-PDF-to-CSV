@@ -42,7 +42,7 @@ def analyse_autres_comptes(date_solde, text):
                 solde = float(solde)
                 return [date_solde, numero_compte, solde]    
 
-def aligner_date(str):
+def align_date(str):
     dt = datetime.datetime.strptime(str,'%Y-%m-%d')
     if dt.day > 25:
         new_date = (dt.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
@@ -50,6 +50,17 @@ def aligner_date(str):
         new_date = dt.replace(day=1)
     new_str = new_date.strftime('%Y-%m-%d')
     return (f'{str} => {new_str}')
+
+def generate_insert(table: str, date_solde: str, numero_compte: str, solde: str, type_compte: str):
+
+    # Detect date format
+    date_format = ""
+    if date_solde[:4].isdigit():
+        date_format = "YYYY-MM-DD"
+    else:
+        date_format = "DD/MM/YYYY"
+
+    return f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','{date_format}'), '{numero_compte}', '{solde}', '{type_compte}');\n"
 
 ############## 
 
@@ -83,7 +94,7 @@ def main():
                         match = re.search(r'TOTAL DU COMPTE TITRES (\d{1,3}( ?\d{3})*,\d+)', line)
                         if match:
                             solde = match[1].replace(' ','').replace(',','.')
-                            result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', 'PEA');\n")
+                            result_file.writelines(generate_insert('epargne',date_solde, numero_compte, solde, 'PEA'))
                             lines_found += 1
             else:
                 livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
@@ -93,15 +104,14 @@ def main():
                 if solde:
                     tab_date.append(solde[0])
                     tab_solde.append(solde[2])
-                    result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{solde[0]}','DD/MM/YYYY'), '{solde[1]}', '{solde[2]}', 'LIVRET');\n")
+                    result_file.writelines(generate_insert('epargne', solde[0], solde[1], solde[2], 'LIVRET'))
                     lines_found += 1
                     solde_ldd = analyse_autres_comptes(solde[0], ldd)
                     if solde_ldd:
                         tab_date.append(solde_ldd[0])
                         tab_solde.append(solde_ldd[2])
-                        result_file.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{solde_ldd[0]}','DD/MM/YYYY'), '{solde_ldd[1]}', '{solde_ldd[2]}', 'LDD');\n")
+                        result_file.writelines(generate_insert('epargne', solde_ldd[0], solde_ldd[1], solde_ldd[2], 'LDD'))
                         lines_found += 1
-
 
     result_file.close()
 
