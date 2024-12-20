@@ -18,18 +18,21 @@ def extract_sections(text, start_pattern: str, end_pattern: str):
     return section
 
 def analyse_livret(text):
-    for line in text:
-        match = re.search(r' (\d{7,}) ', line) # au moins 7 chiffres
-        if match:
-            numero_compte = match[1]
-            # print(f'Nouveau compte trouvé: {numero_compte}')
-        if ' SOLDE' in line and 'Réf' in line:
-            match = re.search(r'AU (\d.+\d) (\d{1,3}(\.?\d{3})*,\d+)', line)
-            date_solde = match[1]
-            solde = match[2]
-            solde = solde.replace('.','').replace(',','.')
-            solde = float(solde)
-            return [date_solde, numero_compte, solde]    
+    try:
+        for line in text:
+            match = re.search(r' (\d{7,}) ', line) # au moins 7 chiffres
+            if match:
+                numero_compte = match[1]
+                # print(f'Nouveau compte trouvé: {numero_compte}')
+            if ' SOLDE' in line and 'Réf' in line:
+                match = re.search(r'AU (\d.+\d) (\d{1,3}(\.?\d{3})*,\d+)', line)
+                date_solde = match[1]
+                solde = match[2]
+                solde = solde.replace('.','').replace(',','.')
+                solde = float(solde)
+                return [date_solde, numero_compte, solde]
+    except:
+        print(text)
 
 def analyse_autres_comptes(date_solde, text):
     for line in text:
@@ -43,24 +46,29 @@ def analyse_autres_comptes(date_solde, text):
                 return [date_solde, numero_compte, solde]    
 
 def align_date(str):
-    dt = datetime.datetime.strptime(str,'%Y-%m-%d')
+    if str[:4].isdigit():
+        dt = datetime.datetime.strptime(str,'%Y-%m-%d')
+    else:
+        dt = datetime.datetime.strptime(str,'%d/%m/%Y')
     if dt.day > 25:
         new_date = (dt.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
     else:
         new_date = dt.replace(day=1)
     new_str = new_date.strftime('%Y-%m-%d')
-    return (f'{str} => {new_str}')
+    return new_str
 
 def generate_insert(table: str, date_solde: str, numero_compte: str, solde: str, type_compte: str):
-
-    # Detect date format
+    # Detecter format date
     date_format = ""
-    if date_solde[:4].isdigit():
-        date_format = "YYYY-MM-DD"
-    else:
-        date_format = "DD/MM/YYYY"
+    # if date_solde[:4].isdigit():
+    #     date_format = "YYYY-MM-DD"
+    # else:
+    #     date_format = "DD/MM/YYYY"
+    
+    date_solde_aligne = align_date(date_solde)
+    date_format = "YYYY-MM-DD"
 
-    return f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','{date_format}'), '{numero_compte}', '{solde}', '{type_compte}');\n"
+    return f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde_aligne}','{date_format}'), '{numero_compte}', '{solde}', '{type_compte}');\n"
 
 ############## 
 
@@ -80,6 +88,10 @@ def main():
 
         for page in reader.pages:
 
+            if ('EUROCOMPTE' in file.name) or ('COMPTE COURANT EN CHF' in file.name):
+                # On ignore le compte courant pour l'instant
+                continue
+
             content = page.extract_text(extraction_mode='plain')
 
             if 'Portefeuille valoris' in file.name:
@@ -94,7 +106,7 @@ def main():
                         match = re.search(r'TOTAL DU COMPTE TITRES (\d{1,3}( ?\d{3})*,\d+)', line)
                         if match:
                             solde = match[1].replace(' ','').replace(',','.')
-                            result_file.writelines(generate_insert('epargne',date_solde, numero_compte, solde, 'PEA'))
+                            result_file.writelines(generate_insert('epargne', date_solde, numero_compte, solde, 'PEA'))
                             lines_found += 1
             else:
                 livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
