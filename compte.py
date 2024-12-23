@@ -1,5 +1,6 @@
 import pandas as pd
 from date_utils import *
+import logging
 
 class compte:
     lignes = None
@@ -49,6 +50,6 @@ class compte:
                     self.extras.loc[len(self.extras)] = [date, compte, float(last_known['solde']), 'ajout']
                     count += 1
 
-        print(f'Ajout de lignes manquantes: {count}')
+        logging.info(f'Lignés complétées: {count}')
 
         self.lignes = pd.concat([self.lignes, self.extras])

@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from compte import compte
 from date_utils import *
+import logging, sys
 
 import locale
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
@@ -29,7 +30,7 @@ def analyse_livret(text):
             match = re.search(r' (\d{7,}) ', line) # au moins 7 chiffres
             if match:
                 numero_compte = match[1]
-                # print(f'Nouveau compte trouvé: {numero_compte}')
+                logging.debug(f'Nouveau compte trouvé: {numero_compte}')
             if ' SOLDE' in line and 'Réf' in line:
                 match = re.search(r'AU (\d.+\d) (\d{1,3}(\.?\d{3})*,\d+)', line)
                 date_solde = parse_date(match[1])
@@ -42,7 +43,7 @@ def analyse_livret(text):
                     'solde': solde
                 }
     except:
-        print(text)
+        logging.info(text)
 
 def analyse_autres_comptes(text):
 
@@ -69,18 +70,20 @@ epargne = compte()
 pea = compte()
 
 def main():
+    logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
     lines_found = 0
     dir_path = Path('.\\pdf')
     for file in sorted(dir_path.glob('*.pdf')):
-        print('*************************** NEW FILE ***************************')
-        print(f'Analyse du fichier {file.name}')
+        logging.debug('*************************** NEW FILE ***************************')
+        logging.info(f'Analyse du fichier {file.name}')
         reader = PdfReader(file)
 
         numero_compte = None
         count_page = 1
         for page in reader.pages:
-            print(f'****************** NEW PAGE {count_page} ******************')
+            logging.debug(f'****************** NEW PAGE {count_page} ******************')
             lines_found_in_page = 0
             if ('EUROCOMPTE' in file.name):
                 # On ignore le compte courant pour l'instant
@@ -105,9 +108,7 @@ def main():
                             lines_found_in_page += 1
             else:
                 livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
-                # print(f'livret: {livret}')
                 ldd = extract_sections(content, 'SITUATION DE VOS AUTRES COMPTES', 'Sous ')
-                # print(f'LDD: {ldd}')
 
                 solde = analyse_livret(livret)
                 if solde:
@@ -119,10 +120,10 @@ def main():
                     epargne.ajout_solde(solde_ldd['date'], solde_ldd['compte'], 'LDD', solde_ldd['solde'])
                     lines_found += 1
                     lines_found_in_page += 1
-            print(f'Processing {file} - page {count_page} - count {lines_found_in_page}')
+            logging.debug(f'Processing {file} - page {count_page} - count {lines_found_in_page}')
             count_page += 1
 
-    print(f'Lignes générées: {lines_found}')
+    logging.info(f'Lignes générées: {lines_found}')
 
     epargne.fill_missing_months()
 
