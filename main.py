@@ -1,8 +1,10 @@
 # importing required classes
 from pypdf import PdfReader
 from pathlib import Path
-import re, datetime
+import re
 import matplotlib.pyplot as plt
+import pandas as pd
+from compte import compte
 
 def extract_sections(text, start_pattern: str, end_pattern: str):
     section = []
@@ -30,7 +32,11 @@ def analyse_livret(text):
                 solde = match[2]
                 solde = solde.replace('.','').replace(',','.')
                 solde = float(solde)
-                return [date_solde, numero_compte, solde]
+                return {
+                    'date': date_solde,
+                    'compte': numero_compte,
+                    'solde': solde
+                }
     except:
         print(text)
 
@@ -43,42 +49,20 @@ def analyse_autres_comptes(date_solde, text):
                 solde = match[2]
                 solde = solde.replace('.','').replace(',','.').replace('+','')
                 solde = float(solde)
-                return [date_solde, numero_compte, solde]    
+                return {
+                    'date': date_solde,
+                    'compte': numero_compte,
+                    'solde': solde
+                }
 
-def align_date(str):
-    if str[:4].isdigit():
-        dt = datetime.datetime.strptime(str,'%Y-%m-%d')
-    else:
-        dt = datetime.datetime.strptime(str,'%d/%m/%Y')
-    if dt.day > 25:
-        new_date = (dt.replace(day=1) + datetime.timedelta(days=32)).replace(day=1)
-    else:
-        new_date = dt.replace(day=1)
-    new_str = new_date.strftime('%Y-%m-%d')
-    return new_str
-
-def generate_insert(table: str, date_solde: str, numero_compte: str, solde: str, type_compte: str):
-    # Detecter format date
-    date_format = ""
-    # if date_solde[:4].isdigit():
-    #     date_format = "YYYY-MM-DD"
-    # else:
-    #     date_format = "DD/MM/YYYY"
-    
-    date_solde_aligne = align_date(date_solde)
-    date_format = "YYYY-MM-DD"
-
-    return f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde_aligne}','{date_format}'), '{numero_compte}', '{solde}', '{type_compte}');\n"
 
 ############## 
+epargne = compte()
+pea = compte()
 
 def main():
-    
-    # print('date,solde')
-    tab_date = []
-    tab_solde = []
+
     lines_found = 0
-    result_file = open("out\insert.sql", "w")
     dir_path = Path('.\\pdf')
     for file in sorted(dir_path.glob('*.pdf')):
         print(f'Processing {file} ')
@@ -106,7 +90,7 @@ def main():
                         match = re.search(r'TOTAL DU COMPTE TITRES (\d{1,3}( ?\d{3})*,\d+)', line)
                         if match:
                             solde = match[1].replace(' ','').replace(',','.')
-                            result_file.writelines(generate_insert('epargne', date_solde, numero_compte, solde, 'PEA'))
+                            pea.ajout_solde(date_solde, numero_compte, 'PEA', solde)
                             lines_found += 1
             else:
                 livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
@@ -114,29 +98,18 @@ def main():
 
                 solde = analyse_livret(livret)
                 if solde:
-                    tab_date.append(solde[0])
-                    tab_solde.append(solde[2])
-                    result_file.writelines(generate_insert('epargne', solde[0], solde[1], solde[2], 'LIVRET'))
+                    epargne.ajout_solde(solde['date'], solde['compte'], 'LIVRET', solde['solde'])
                     lines_found += 1
-                    solde_ldd = analyse_autres_comptes(solde[0], ldd)
+                    solde_ldd = analyse_autres_comptes(solde['date'], ldd)
                     if solde_ldd:
-                        tab_date.append(solde_ldd[0])
-                        tab_solde.append(solde_ldd[2])
-                        result_file.writelines(generate_insert('epargne', solde_ldd[0], solde_ldd[1], solde_ldd[2], 'LDD'))
+                        epargne.ajout_solde(solde_ldd['date'], solde_ldd['compte'], 'LDD', solde_ldd['solde'])
                         lines_found += 1
 
-    result_file.close()
+    print(f'Lignes générées: {lines_found}')
 
-    print(f'{lines_found} lines found.')
-    # # Plotting
-    # plt.plot(tab_date,tab_solde)
-    # plt.xlabel('Date')
-    # plt.ylabel('Solde')
-    # plt.title(f'Epargne')
+    epargne.fill_missing_months()
 
-    # # function to show the plot
-    # plt.show()
-
+    epargne.generate_insert('epargne')
 
 if __name__ == "__main__":
     main()
