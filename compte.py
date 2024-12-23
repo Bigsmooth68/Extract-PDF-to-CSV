@@ -20,7 +20,7 @@ class compte:
                 numero_compte = row['compte']
                 solde = row['solde']
                 type_compte = row['type_compte']
-                f.writelines(f"INSERT INTO epargne (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n")
+                f.writelines(f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n")
 
     def fill_missing_months(self):
         """Remplit les mois manquants avec le dernier solde connu."""

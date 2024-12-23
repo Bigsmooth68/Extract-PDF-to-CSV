@@ -111,5 +111,7 @@ def main():
 
     epargne.generate_insert('epargne')
 
+    pea.generate_insert('pea')
+
 if __name__ == "__main__":
     main()
