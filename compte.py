@@ -9,14 +9,15 @@ class compte:
         self.lignes = pd.DataFrame(columns=['date', 'compte', 'solde', 'type_compte'])
         self.extras = pd.DataFrame(columns=['date', 'compte', 'solde', 'type_compte'])
 
-    def ajout_solde(self, date_solde: str, numero_compte: str, type_compte: str, solde: str):
-        date_solde = aligner_date(parse_date(date_solde))
+    def ajout_solde(self, date_solde: datetime, numero_compte: str, type_compte: str, solde: str):
+        date_solde = aligner_date(date_solde)
         self.lignes.loc[len(self.lignes)] = [date_solde, numero_compte, solde, type_compte]
 
     def generate_insert(self, table):
+        self.lignes.drop_duplicates(inplace=True)
         with open(f'out/{table}.sql', 'w') as f:
             for index, row in self.lignes.iterrows():
-                date_solde = aligner_date(row['date']).strftime('%Y-%m-%d')
+                date_solde = row['date'].strftime('%Y-%m-%d')
                 numero_compte = row['compte']
                 solde = row['solde']
                 type_compte = row['type_compte']

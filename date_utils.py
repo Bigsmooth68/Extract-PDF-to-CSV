@@ -1,5 +1,9 @@
 import datetime
 
+def parse_date_texte(str):
+    date_obj = datetime.datetime.strptime(str, "%d %B %Y")
+    return date_obj
+
 def parse_date(str):
     if str[:4].isdigit():
         dt = datetime.datetime.strptime(str,'%Y-%m-%d')
