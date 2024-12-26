@@ -2,11 +2,10 @@
 from pypdf import PdfReader
 from pathlib import Path
 import re
-import matplotlib.pyplot as plt
-import pandas as pd
 from compte import compte
-from date_utils import *
-import logging, sys
+from date_utils import parse_date_texte, parse_date
+import logging
+import sys
 
 import locale
 locale.setlocale(locale.LC_ALL, 'fr_FR.UTF-8')
@@ -42,7 +41,7 @@ def analyse_livret(text):
                     'compte': numero_compte,
                     'solde': solde
                 }
-    except:
+    except Exception:
         logging.info(text)
 
 def analyse_autres_comptes(text):
@@ -66,22 +65,25 @@ def analyse_autres_comptes(text):
                 }
 
 ############## 
-epargne = compte()
-pea = compte()
 
 def main():
     logging.basicConfig(stream=sys.stdout, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-
+    epargne = compte()
+    pea = compte()
     lines_found = 0
+
     dir_path = Path('.\\pdf')
+
     for file in sorted(dir_path.glob('*.pdf')):
+
         logging.debug('*************************** NEW FILE ***************************')
         logging.info(f'Analyse du fichier {file.name}')
         reader = PdfReader(file)
 
         numero_compte = None
         count_page = 1
+
         for page in reader.pages:
             logging.debug(f'****************** NEW PAGE {count_page} ******************')
             lines_found_in_page = 0
@@ -92,6 +94,7 @@ def main():
             content = page.extract_text(extraction_mode='plain')
 
             if 'Portefeuille valoris' in file.name:
+
                 match = re.search(r' au (.+).pdf', file.name)
                 date_solde = parse_date(match[1])
                 for line in content.splitlines():
@@ -106,6 +109,7 @@ def main():
                             pea.ajout_solde(date_solde, numero_compte, 'PEA', solde)
                             lines_found += 1
                             lines_found_in_page += 1
+
             else:
                 livret = extract_sections(content, 'LIVRET BLEU', 'Réf')
                 ldd = extract_sections(content, 'SITUATION DE VOS AUTRES COMPTES', 'Sous ')

@@ -1,5 +1,5 @@
 import pandas as pd
-from date_utils import *
+from date_utils import aligner_date
 import logging
 
 class compte:
@@ -10,7 +10,7 @@ class compte:
         self.lignes = pd.DataFrame(columns=['date', 'compte', 'solde', 'type_compte'])
         self.extras = pd.DataFrame(columns=['date', 'compte', 'solde', 'type_compte'])
 
-    def ajout_solde(self, date_solde: datetime, numero_compte: str, type_compte: str, solde: str):
+    def ajout_solde(self, date_solde, numero_compte: str, type_compte: str, solde: str):
         date_solde = aligner_date(date_solde)
         self.lignes.loc[len(self.lignes)] = [date_solde, numero_compte, solde, type_compte]
 

@@ -1,4 +1,6 @@
-import os, datetime, time
+import os
+import datetime
+import time
 from pathlib import Path
 
 dir_path = Path('.\\pdf')
