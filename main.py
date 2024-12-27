@@ -6,6 +6,7 @@ from compte import compte
 from date_utils import parse_date_texte, parse_date
 import logging
 import sys
+import argparse
 
 import locale
 
@@ -70,13 +71,36 @@ def main():
         format="%(asctime)s - %(levelname)s - %(message)s",
     )
 
+    parser = argparse.ArgumentParser(prog="Analyse des extraits de comptes Crédit Mutuel")
+    parser.add_argument('-p', '--pea', action='store_true')
+    args = parser.parse_args()
+
+    flag_pea = True
+    flag_livret = True
+    if args.pea:
+        flag_livret = False
+
     epargne = compte()
     pea = compte()
     lines_found = 0
 
     dir_path = Path(".\\pdf")
 
+    fichiers_pea = []
+    fichiers_livret = []
+
+    # Selection des fichiers
     for file in sorted(dir_path.glob("*.pdf")):
+        if "Portefeuille valoris" in file.name:
+            if flag_pea:
+                fichiers_pea.append(file)
+        else:
+            if flag_livret:
+                fichiers_livret.append(file)
+
+    logging.info(f"Fichiers sélectionnées: PEA {len(fichiers_pea)} - Livrets {len(fichiers_livret)}")
+
+    for file in fichiers_pea:
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
@@ -97,25 +121,34 @@ def main():
 
             content = page.extract_text(extraction_mode="plain")
 
-            if "Portefeuille valoris" in file.name:
-                match = re.search(r" au (.+).pdf", file.name)
-                date_solde = parse_date(match[1])
-                for line in content.splitlines():
-                    if numero_compte is None and " 000" in line:
-                        match = re.search(r" (000\d+)$", line)
-                        if match:
-                            numero_compte = match[1]
-                    if "TOTAL DU COMPTE TITRES" in line:
-                        match = re.search(
-                            r"TOTAL DU COMPTE TITRES (\d{1,3}( ?\d{3})*,\d+)", line
-                        )
-                        if match:
-                            solde = match[1].replace(" ", "").replace(",", ".")
-                            pea.ajout_solde(date_solde, numero_compte, "PEA", solde)
-                            lines_found += 1
-                            lines_found_in_page += 1
+            match = re.search(r" (000\d+) \d\d au (.+).pdf", file.name)
+            numero_compte = match[1]
+            date_solde = parse_date(match[2])
+            texte_pea = extract_sections(content, "FISCALITE DU PEA OUVERT", "Plus/Moins value latente")
+            print(texte_pea)
+            exit(0)
+            for line in content.splitlines():
+                match = re.search(
+                    r"Valorisation titres (\d{1,3}( ?\d{3})*,\d+)", line
+                )
+                if match:
+                    solde = match[1].replace(" ", "").replace(",", ".")
+                    pea.ajout_solde(date_solde, numero_compte, "PEA", solde)
+                    lines_found += 1
+                    lines_found_in_page += 1
 
-            else:
+        for file in fichiers_livret:
+            logging.debug(
+            "*************************** NEW FILE ***************************"
+            )
+            logging.info(f"Analyse du fichier {file.name}")
+            reader = PdfReader(file)
+
+            numero_compte = None
+            count_page = 1
+
+            for page in reader.pages:
+
                 livret = extract_sections(content, "LIVRET BLEU", "Réf")
                 ldd = extract_sections(
                     content, "SITUATION DE VOS AUTRES COMPTES", "Sous "
