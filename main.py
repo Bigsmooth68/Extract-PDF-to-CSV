@@ -5,15 +5,13 @@ import re
 import logging
 import sys
 import argparse
-import locale
-
+# extra modules
 from compte import compte
 from date_utils import parse_date
 from analyse import extraire_section, analyse_livret, analyse_autres_comptes
 
+import locale
 locale.setlocale(locale.LC_ALL, "fr_FR.UTF-8")
-
-##############
 
 
 def main():
