@@ -23,7 +23,7 @@ class compte:
     def generate_insert(self, table):
         if len(self.lignes) > 0:
             self.lignes.drop_duplicates(inplace=True)
-            with open(f"out/{table}.sql", "w") as f:
+            with open(f"out/{table}.sql", "w", encoding="utf-8") as f:
                 for index, row in self.lignes.iterrows():
                     date_solde = row["date"].strftime("%Y-%m-%d")
                     numero_compte = row["compte"]

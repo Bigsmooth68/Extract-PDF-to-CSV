@@ -14,6 +14,7 @@ from analyse import (
     analyse_livret,
     analyse_autres_comptes,
     convertir_pdf,
+    formater_solde,
 )
 
 import locale
@@ -60,9 +61,8 @@ def main():
         if "EUROCOMPTE" in file.name:
             # On ignore le compte courant pour l'instant
             continue
-        if "Portefeuille valoris" in file.name:
-            if flag_pea:
-                fichiers_pea.append(file)
+        if "Portefeuille valoris" in file.name and flag_pea:
+            fichiers_pea.append(file)
         else:
             if flag_livret:
                 fichiers_livret.append(file)
@@ -87,12 +87,17 @@ def main():
             contenu, "FISCALITE DU PEA OUVERT", "Plus/Moins value latente"
         )
 
-        for line in contenu.splitlines():
-            match = re.search(r"Valorisation titres (\d{1,3}( ?\d{3})*,\d+)", line)
-            if match:
-                solde = match[1].replace(" ", "").replace(",", ".")
-                pea.ajout_solde(date_solde, numero_compte, "PEA", solde)
-                lines_found += 1
+        valeurs_pea = [
+            "valorisation titre",
+            "solde espèce",
+            "mouvements en cours",
+            "cumul versements",
+        ]
+
+        for index, value in enumerate(valeurs_pea, start=1):
+            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index ])
+            valeur = formater_solde(match[1])
+            pea.ajout_solde(date_solde, numero_compte, value, valeur)
 
     for file in fichiers_livret:
         logging.debug(
