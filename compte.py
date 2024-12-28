@@ -21,16 +21,17 @@ class compte:
         ]
 
     def generate_insert(self, table):
-        self.lignes.drop_duplicates(inplace=True)
-        with open(f"out/{table}.sql", "w") as f:
-            for index, row in self.lignes.iterrows():
-                date_solde = row["date"].strftime("%Y-%m-%d")
-                numero_compte = row["compte"]
-                solde = row["solde"]
-                type_compte = row["type_compte"]
-                f.writelines(
-                    f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n"
-                )
+        if (len(self.lignes) >0):
+            self.lignes.drop_duplicates(inplace=True)
+            with open(f"out/{table}.sql", "w") as f:
+                for index, row in self.lignes.iterrows():
+                    date_solde = row["date"].strftime("%Y-%m-%d")
+                    numero_compte = row["compte"]
+                    solde = row["solde"]
+                    type_compte = row["type_compte"]
+                    f.writelines(
+                        f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n"
+                    )
 
     def fill_missing_months(self):
         """Remplit les mois manquants avec le dernier solde connu."""
