@@ -6,7 +6,6 @@ from pypdf import PdfReader
 
 
 def convertir_pdf(file):
-
     fichier_text = "cache/" + file.name.replace(".pdf", ".txt")
 
     if os.path.isfile(fichier_text):
@@ -71,3 +70,7 @@ def analyse_autres_comptes(text):
                 solde = solde.replace(".", "").replace(",", ".").replace("+", "")
                 solde = float(solde)
                 return {"date": date_solde, "compte": numero_compte, "solde": solde}
+
+
+def formater_solde(str):
+    return str.replace(" ", "").replace(",", ".")
