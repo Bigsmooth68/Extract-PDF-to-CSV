@@ -1,6 +1,28 @@
 from date_utils import parse_date_texte, parse_date
 import logging
 import re
+import os
+from pypdf import PdfReader
+
+
+def convertir_pdf(file):
+
+    fichier_text = "cache/" + file.name.replace(".pdf", ".txt")
+
+    if os.path.isfile(fichier_text):
+        with open(fichier_text, "r", encoding="utf-8") as f:
+            contenu = f.read()
+
+    else:
+        reader = PdfReader(file)
+        contenu = ""
+        for page in reader.pages:
+            contenu += page.extract_text(extraction_mode="plain")
+
+        with open(fichier_text, "w", encoding="utf-8") as f:
+            f.writelines(contenu)
+
+    return contenu
 
 
 def extraire_section(text, start_pattern: str, end_pattern: str):
