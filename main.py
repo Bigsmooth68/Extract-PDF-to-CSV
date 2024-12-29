@@ -45,7 +45,7 @@ def main():
 
     epargne = compte()
     pea = compte()
-    lines_found = 0
+    compte_lignes = 0
 
     for dir in ["out", "cache"]:
         if not os.path.exists(dir):
@@ -88,16 +88,22 @@ def main():
         )
 
         valeurs_pea = [
-            "valorisation titre",
-            "solde espèce",
-            "mouvements en cours",
-            "cumul versements",
+            "Valorisation titre",
+            "Solde espece",
+            "Mouvements en cours",
+            "Cumul versements",
+            "Cumul versements remboursés",
+            "Plus/Moins value",
         ]
+        if len(texte_pea) > 8:
+            midpoint = 3
+            valeurs_pea = valeurs_pea[0:midpoint] + ['Désinvestissement'] + valeurs_pea[midpoint:]  
 
         for index, value in enumerate(valeurs_pea, start=1):
-            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index ])
+            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index])
             valeur = formater_solde(match[1])
             pea.ajout_solde(date_solde, numero_compte, value, valeur)
+            compte_lignes += 1
 
     for file in fichiers_livret:
         logging.debug(
@@ -116,7 +122,7 @@ def main():
             epargne.ajout_solde(
                 solde["date"], solde["compte"], "LIVRET", solde["solde"]
             )
-            lines_found += 1
+            compte_lignes += 1
         solde_ldd = analyse_autres_comptes(ldd)
         if solde_ldd:
             epargne.ajout_solde(
@@ -125,9 +131,9 @@ def main():
                 "LDD",
                 solde_ldd["solde"],
             )
-            lines_found += 1
+            compte_lignes += 1
 
-    logging.info(f"Lignes générées: {lines_found}")
+    logging.info(f"Lignes générées: {compte_lignes}")
 
     epargne.fill_missing_months()
 
