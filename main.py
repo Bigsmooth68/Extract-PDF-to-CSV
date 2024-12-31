@@ -106,7 +106,7 @@ def main():
         for index, type_compte in enumerate(valeurs_pea):
             match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index + 1])
             valeur = formater_solde(match[1])
-            pea.ajout_solde(date_solde, numero_compte, type_compte, valeur)
+            pea.ajout_solde(date_solde, numero_compte, type_compte, valeur, aligner_date=False)
             compte_lignes += 1
         
 
