@@ -84,7 +84,7 @@ def main():
         numero_compte = match[1]
         date_solde = parse_date(match[2])
         texte_pea = extraire_section(
-            contenu, "FISCALITE DU PEA OUVERT", "Plus/Moins value latente"
+            contenu, "Valorisation titres (1)", "Plus/Moins value latente"
         )
 
         valeurs_pea = [
@@ -108,6 +108,7 @@ def main():
             valeur = formater_solde(match[1])
             pea.ajout_solde(date_solde, numero_compte, type_compte, valeur)
             compte_lignes += 1
+        
 
     for file in fichiers_livret:
         logging.debug(
