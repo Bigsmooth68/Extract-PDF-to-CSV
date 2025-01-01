@@ -87,6 +87,7 @@ def main():
             contenu, "Valorisation titres (1)", "Plus/Moins value latente"
         )
 
+        print(texte_pea)
         valeurs_pea = [
             "Valorisation titre",
             "Solde espece",
@@ -96,20 +97,19 @@ def main():
             "Cumul versements remboursés",
             "Plus/Moins value",
         ]
-        if len(texte_pea) > 8:
+        if len(texte_pea) > 7:
             midpoint = 3
             valeurs_pea = (
-                valeurs_pea[0:midpoint]
-                + ["Désinvestissement"]
-                + valeurs_pea[midpoint:]
+                valeurs_pea[0:midpoint] + ["Désinvestissement"] + valeurs_pea[midpoint:]
             )
 
         for index, type_compte in enumerate(valeurs_pea):
             match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index])
             valeur = formater_solde(match[1])
-            pea.ajout_solde(date_solde, numero_compte, type_compte, valeur, aligner_date=False)
+            pea.ajout_solde(
+                date_solde, numero_compte, type_compte, valeur, aligner_date=False
+            )
             compte_lignes += 1
-        
 
     for file in fichiers_livret:
         logging.debug(
