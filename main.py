@@ -59,6 +59,7 @@ def main():
     # Selection des fichiers
     for file in sorted(dir_path.glob("*.pdf")):
         if "EUROCOMPTE" in file.name:
+            # convertir_pdf(file)
             # On ignore le compte courant pour l'instant
             continue
         if "Portefeuille valoris" in file.name and flag_pea:
@@ -107,7 +108,7 @@ def main():
             match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index])
             valeur = formater_solde(match[1])
             pea.ajout_solde(
-                date_solde, numero_compte, type_compte, valeur, aligner_date=False
+                date_solde, numero_compte, type_compte, valeur, aligne_date=False
             )
             compte_lignes += 1
 
