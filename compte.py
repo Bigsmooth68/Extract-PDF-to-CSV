@@ -11,8 +11,15 @@ class compte:
         self.lignes = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
         self.extras = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
 
-    def ajout_solde(self, date_solde, numero_compte: str, type_compte: str, solde: str, aligner_date: bool=True):
-        if aligner_date:
+    def ajout_solde(
+        self,
+        date_solde,
+        numero_compte: str,
+        type_compte: str,
+        solde: str,
+        aligne_date: bool = True,
+    ):
+        if aligne_date:
             date_solde = aligner_date(date_solde)
 
         self.lignes.loc[len(self.lignes)] = [
