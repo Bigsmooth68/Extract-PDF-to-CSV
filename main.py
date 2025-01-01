@@ -91,6 +91,7 @@ def main():
             "Valorisation titre",
             "Solde espece",
             "Mouvements en cours",
+            "Valorisation totale",
             "Cumul versements",
             "Cumul versements remboursés",
             "Plus/Moins value",
@@ -99,12 +100,12 @@ def main():
             midpoint = 3
             valeurs_pea = (
                 valeurs_pea[0:midpoint]
-                + ["Désinvestissement", "Valorisation totale"]
+                + ["Désinvestissement"]
                 + valeurs_pea[midpoint:]
             )
 
         for index, type_compte in enumerate(valeurs_pea):
-            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index + 1])
+            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", texte_pea[index])
             valeur = formater_solde(match[1])
             pea.ajout_solde(date_solde, numero_compte, type_compte, valeur, aligner_date=False)
             compte_lignes += 1
