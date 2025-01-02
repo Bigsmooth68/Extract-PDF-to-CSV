@@ -154,8 +154,6 @@ dmypy.json
 # Cython debug symbols
 cython_debug/
 
-
-*.pdf
-*.csv
+pdf/
 out/
 cache/
