@@ -88,7 +88,7 @@ def main():
             contenu, "Valorisation titres (1)", "Plus/Moins value latente"
         )
 
-        print(texte_pea)
+        logging.debug(texte_pea)
         valeurs_pea = [
             "Valorisation titre",
             "Solde espece",
