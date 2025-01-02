@@ -29,7 +29,7 @@ class compte:
             type_compte,
         ]
 
-    def generate_insert(self, table):
+    def generer_insert(self, table):
         if len(self.lignes) > 0:
             self.lignes.drop_duplicates(inplace=True)
             with open(f"out/{table}.sql", "w", encoding="utf-8") as f:
@@ -42,6 +42,10 @@ class compte:
                     f.writelines(
                         f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n"
                     )
+
+    def generer_csv(self, fichier):
+        if len(self.lignes) > 0:
+            self.lignes.to_csv(f"out/{fichier}")
 
     def fill_missing_months(self):
         """Remplit les mois manquants avec le dernier solde connu."""

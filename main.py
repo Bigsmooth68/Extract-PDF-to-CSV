@@ -32,8 +32,22 @@ def main():
     parser = argparse.ArgumentParser(
         prog="Analyse des extraits de comptes Crédit Mutuel"
     )
-    parser.add_argument("-p", "--pea", action="store_true")
-    parser.add_argument("-l", "--livret", action="store_true")
+    parser.add_argument(
+        "-p",
+        "--pea",
+        action="store_true",
+        help="Limite l'extraction aux relevés des PEA",
+    )
+    parser.add_argument(
+        "-l", "--livret", action="store_true", help="Limite l'extraction aux livrets"
+    )
+    parser.add_argument(
+        "-o",
+        "--out",
+        choices=["csv", "sql"],
+        default="sql",
+        help="Choix du format d'export",
+    )
     args = parser.parse_args()
 
     flag_pea = True
@@ -144,9 +158,12 @@ def main():
 
     epargne.fill_missing_months()
 
-    epargne.generate_insert("epargne")
-
-    pea.generate_insert("pea")
+    if args.out == "sql":
+        epargne.generer_insert("epargne")
+        pea.generer_insert("pea")
+    else:
+        epargne.generer_csv("epargne.csv")
+        pea.generer_csv("pea.csv")
 
 
 if __name__ == "__main__":
