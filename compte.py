@@ -19,6 +19,9 @@ class compte:
         solde: str,
         aligne_date: bool = True,
     ):
+        """
+        Ajout d'une ligne solde
+        """
         if aligne_date:
             date_solde = aligner_date(date_solde)
 
@@ -30,6 +33,9 @@ class compte:
         ]
 
     def generer_insert(self, table):
+        """
+        Créer un fichier sql avec les INSERT correspondant aux lignes de solde
+        """
         if len(self.lignes) > 0:
             self.lignes.drop_duplicates(inplace=True)
             with open(f"out/{table}.sql", "w", encoding="utf-8") as f:
@@ -44,11 +50,16 @@ class compte:
                     )
 
     def generer_csv(self, fichier):
+        """
+        Créer un fichier csv avec les lignes de solde
+        """
         if len(self.lignes) > 0:
             self.lignes.to_csv(f"out/{fichier}", index=False)
 
     def fill_missing_months(self):
-        """Remplit les mois manquants avec le dernier solde connu."""
+        """
+        Remplit les mois manquants avec le dernier solde connu.
+        """
         count = 0
         # Récupère tous les comptes
         self.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
