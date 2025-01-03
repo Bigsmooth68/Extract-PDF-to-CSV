@@ -12,7 +12,9 @@ def parse_date_texte(str) -> datetime:
 
 def parse_date(date_str: str) -> datetime:
     """
-    Analyse la chaine. S'adapte au format (AAAA-MM-JJ ou JJ/MM/AAAA)
+    Analyse la chaine contenant une date.
+    
+    S'adapte au format (AAAA-MM-JJ ou JJ/MM/AAAA)
     """
     if str[:4].isdigit():
         dt = datetime.datetime.strptime(str, "%Y-%m-%d")
