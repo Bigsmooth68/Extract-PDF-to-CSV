@@ -13,13 +13,13 @@ def parse_date_texte(str) -> datetime:
 def parse_date(date_str: str) -> datetime:
     """
     Analyse la chaine contenant une date.
-    
+
     S'adapte au format (AAAA-MM-JJ ou JJ/MM/AAAA)
     """
-    if str[:4].isdigit():
-        dt = datetime.datetime.strptime(str, "%Y-%m-%d")
+    if date_str[:4].isdigit():
+        dt = datetime.datetime.strptime(date_str, "%Y-%m-%d")
     else:
-        dt = datetime.datetime.strptime(str, "%d/%m/%Y")
+        dt = datetime.datetime.strptime(date_str, "%d/%m/%Y")
     return dt
 
 
