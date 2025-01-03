@@ -45,7 +45,7 @@ class compte:
 
     def generer_csv(self, fichier):
         if len(self.lignes) > 0:
-            self.lignes.to_csv(f"out/{fichier}")
+            self.lignes.to_csv(f"out/{fichier}", index=False)
 
     def fill_missing_months(self):
         """Remplit les mois manquants avec le dernier solde connu."""
