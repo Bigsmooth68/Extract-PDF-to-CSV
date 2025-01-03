@@ -1,6 +1,5 @@
 # importing required classes
 from pathlib import Path
-import re
 import logging
 import sys
 import argparse
@@ -8,14 +7,6 @@ import os
 
 # extra modules
 from compte import compte
-from date_utils import parse_date
-from analyse import (
-    extraire_section,
-    analyse_livret,
-    analyse_autres_comptes,
-    convertir_pdf,
-    formater_solde,
-)
 
 import locale
 
@@ -59,7 +50,6 @@ def main():
 
     epargne = compte()
     pea = compte()
-    compte_lignes = 0
 
     for dir in ["out", "cache"]:
         if not os.path.exists(dir):
@@ -86,75 +76,13 @@ def main():
         f"Fichiers sélectionnés: PEA {len(fichiers_pea)} - Livrets {len(fichiers_livret)}"
     )
 
-    for file in fichiers_pea:
-        logging.debug(
-            "*************************** NEW FILE ***************************"
-        )
-        logging.info(f"Analyse du fichier {file.name}")
-        contenu = convertir_pdf(file)
+    for fichier in fichiers_pea:
+        pea.analyse_pea(fichier)
 
-        numero_compte = None
+    for fichier in fichiers_livret:
+        epargne.analyse_livret(fichier)
 
-        match = re.search(r" (000\d+) \d\d au (.+).pdf", file.name)
-        numero_compte = match[1]
-        date_solde = parse_date(match[2])
-        extract_fiscalite = extraire_section(
-            contenu, "Valorisation titres (1)", "Plus/Moins value latente"
-        )
-
-        logging.debug(extract_fiscalite)
-        valeurs_pea = [
-            "Valorisation titre",
-            "Solde espece",
-            "Mouvements en cours",
-            "Valorisation totale",
-            "Cumul versements",
-            "Cumul versements remboursés",
-            "Plus/Moins value",
-        ]
-        if len(extract_fiscalite) > 7:
-            midpoint = 3
-            valeurs_pea = (
-                valeurs_pea[0:midpoint] + ["Désinvestissement"] + valeurs_pea[midpoint:]
-            )
-
-        for index, type_compte in enumerate(valeurs_pea):
-            match = re.search(r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", extract_fiscalite[index])
-            valeur = formater_solde(match[1])
-            pea.ajout_solde(
-                date_solde, numero_compte, type_compte, valeur, aligne_date=False
-            )
-            compte_lignes += 1
-
-    for file in fichiers_livret:
-        logging.debug(
-            "*************************** NEW FILE ***************************"
-        )
-        logging.info(f"Analyse du fichier {file.name}")
-
-        contenu = convertir_pdf(file)
-        numero_compte = None
-
-        livret = extraire_section(contenu, "LIVRET BLEU", "Réf")
-        ldd = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Sous ")
-
-        solde = analyse_livret(livret)
-        if solde:
-            epargne.ajout_solde(
-                solde["date"], solde["compte"], "LIVRET", solde["solde"]
-            )
-            compte_lignes += 1
-        solde_ldd = analyse_autres_comptes(ldd)
-        if solde_ldd:
-            epargne.ajout_solde(
-                solde_ldd["date"],
-                solde_ldd["compte"],
-                "LDD",
-                solde_ldd["solde"],
-            )
-            compte_lignes += 1
-
-    logging.info(f"Lignes générées: {compte_lignes}")
+    logging.info(f"Lignes générées: {pea.nb_lignes() + epargne.nb_lignes()}")
 
     epargne.fill_missing_months()
 

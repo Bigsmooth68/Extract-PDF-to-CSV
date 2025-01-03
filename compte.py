@@ -1,6 +1,15 @@
 import pandas as pd
 from date_utils import aligner_date
 import logging
+import re
+from date_utils import parse_date
+from analyse import (
+    extraire_section,
+    analyse_livret,
+    analyse_autres_comptes,
+    convertir_pdf,
+    formater_solde,
+)
 
 
 class compte:
@@ -10,6 +19,11 @@ class compte:
     def __init__(self):
         self.lignes = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
         self.extras = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
+
+    def nb_lignes(self):
+        len1 = len(self.lignes) if self.lignes is not None else 0
+        len2 = len(self.extras) if self.extras is not None else 0
+        return len1 + len2
 
     def ajout_solde(
         self,
@@ -89,3 +103,68 @@ class compte:
         logging.info(f"Lignés complétées: {count}")
 
         self.lignes = pd.concat([self.lignes, self.extras])
+
+    def analyse_pea(self, fichier):
+        logging.debug(
+            "*************************** NEW FILE ***************************"
+        )
+        logging.info(f"Analyse du fichier {fichier.name}")
+        contenu = convertir_pdf(fichier)
+
+        numero_compte = None
+
+        match = re.search(r" (000\d+) \d\d au (.+).pdf", fichier.name)
+        numero_compte = match[1]
+        date_solde = parse_date(match[2])
+        extract_fiscalite = extraire_section(
+            contenu, "Valorisation titres (1)", "Plus/Moins value latente"
+        )
+
+        logging.debug(extract_fiscalite)
+        valeurs_pea = [
+            "Valorisation titre",
+            "Solde espece",
+            "Mouvements en cours",
+            "Valorisation totale",
+            "Cumul versements",
+            "Cumul versements remboursés",
+            "Plus/Moins value",
+        ]
+        if len(extract_fiscalite) > 7:
+            midpoint = 3
+            valeurs_pea = (
+                valeurs_pea[0:midpoint] + ["Désinvestissement"] + valeurs_pea[midpoint:]
+            )
+
+        for index, type_compte in enumerate(valeurs_pea):
+            match = re.search(
+                r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", extract_fiscalite[index]
+            )
+            valeur = formater_solde(match[1])
+            self.ajout_solde(
+                date_solde, numero_compte, type_compte, valeur, aligne_date=False
+            )
+
+    def analyse_livret(self, fichier):
+        logging.debug(
+            "*************************** NEW FILE ***************************"
+        )
+        logging.info(f"Analyse du fichier {fichier.name}")
+
+        contenu = convertir_pdf(fichier)
+
+        livret = extraire_section(contenu, "LIVRET BLEU", "Réf")
+        ldd = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Sous ")
+
+        solde = analyse_livret(livret)
+        if solde:
+            self.ajout_solde(solde["date"], solde["compte"], "LIVRET", solde["solde"])
+
+        solde_ldd = analyse_autres_comptes(ldd)
+        if solde_ldd:
+            self.ajout_solde(
+                solde_ldd["date"],
+                solde_ldd["compte"],
+                "LDD",
+                solde_ldd["solde"],
+            )
