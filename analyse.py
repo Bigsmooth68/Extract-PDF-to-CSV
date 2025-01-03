@@ -5,7 +5,10 @@ import os
 from pypdf import PdfReader
 
 
-def convertir_pdf(file):
+def convertir_pdf(file) -> list[str]:
+    """
+    Conversion du pdf avec gestion du cache
+    """
     fichier_text = "cache/" + file.name.replace(".pdf", ".txt")
 
     if os.path.isfile(fichier_text):
@@ -25,6 +28,9 @@ def convertir_pdf(file):
 
 
 def extraire_section(text, start_pattern: str, end_pattern: str):
+    """
+    Selection des lignes entre start_pattern et end_pattern
+    """
     section = []
     inside_section = False
     for line in text.splitlines():
@@ -39,6 +45,9 @@ def extraire_section(text, start_pattern: str, end_pattern: str):
 
 
 def analyse_livret(text):
+    """
+    Analyse des lignes correspondant au livret Bleu
+    """
     try:
         for line in text:
             match = re.search(r" (\d{7,}) ", line)  # au moins 7 chiffres
@@ -57,6 +66,9 @@ def analyse_livret(text):
 
 
 def analyse_autres_comptes(text):
+    """
+    Analyse des lignes correspondant aux livrets Bleu, LDD dans la section "autres comptes"
+    """
     for line in text:
         if "SITUATION DE VOS AUTRES COMPTES" in line:
             pattern = r"au (\d{1,2} \w+ \d{4})"
@@ -73,4 +85,7 @@ def analyse_autres_comptes(text):
 
 
 def formater_solde(str):
+    """
+    Conversion d'une chaine contenant un solde (1 433,21) vers une chaine nombre (1433.21)
+    """
     return str.replace(" ", "").replace(",", ".")
