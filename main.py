@@ -39,6 +39,9 @@ def main():
         default="sql",
         help="Choix du format d'export",
     )
+    parser.add_argument(
+        "-v", "--verbose", action="store_true", help="Augmenter le niveau de log"
+    )
     args = parser.parse_args()
 
     flag_pea = True
@@ -47,6 +50,9 @@ def main():
         flag_livret = False
     if args.livret:
         flag_pea = False
+
+    if args.verbose:
+        logging.getLogger().setLevel(logging.DEBUG)
 
     epargne = compte()
     pea = compte()

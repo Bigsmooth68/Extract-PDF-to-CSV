@@ -60,7 +60,9 @@ def analyse_livret(text):
                 solde = match[2]
                 solde = solde.replace(".", "").replace(",", ".")
                 solde = float(solde)
-                return {"date": date_solde, "compte": numero_compte, "solde": solde}
+                resultat = {"date": date_solde, "compte": numero_compte, "solde": solde}
+                logging.debug(f"analyse_livret: {resultat}")
+                return resultat
     except Exception:
         logging.info(text)
 
@@ -70,6 +72,7 @@ def analyse_autres_comptes(text):
     Analyse des lignes correspondant aux livrets Bleu, LDD dans la section "autres comptes"
     """
     for line in text:
+        logging.debug(line)
         if "SITUATION DE VOS AUTRES COMPTES" in line:
             pattern = r"au (\d{1,2} \w+ \d{4})"
             date_str = re.search(pattern, line).group(1)
@@ -81,7 +84,9 @@ def analyse_autres_comptes(text):
                 solde = match[2]
                 solde = solde.replace(".", "").replace(",", ".").replace("+", "")
                 solde = float(solde)
-                return {"date": date_solde, "compte": numero_compte, "solde": solde}
+                resultat = {"date": date_solde, "compte": numero_compte, "solde": solde}
+                logging.debug(f"analyse_autres_comptes: {resultat}")
+                return resultat
 
 
 def formater_solde(str):
