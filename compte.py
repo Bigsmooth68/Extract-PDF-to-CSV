@@ -14,16 +14,13 @@ from analyse import (
 
 class compte:
     lignes = None
-    extras = None
 
     def __init__(self):
         self.lignes = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
-        self.extras = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
 
     def nb_lignes(self):
         len1 = len(self.lignes) if self.lignes is not None else 0
-        len2 = len(self.extras) if self.extras is not None else 0
-        return len1 + len2
+        return len1
 
     def ajout_solde(
         self,
@@ -68,6 +65,7 @@ class compte:
         Créer un fichier csv avec les lignes de solde
         """
         if len(self.lignes) > 0:
+            logging.debug(self.lignes)
             self.lignes.to_csv(f"out/{fichier}", index=False)
 
     def fill_missing_months(self):
@@ -75,6 +73,7 @@ class compte:
         Remplit les mois manquants avec le dernier solde connu.
         """
         count = 0
+        extras = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
         # Récupère tous les comptes
         self.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
@@ -92,7 +91,7 @@ class compte:
                     # Trouve le dernier solde connu avant cette date
                     last_known = soldes[soldes["date"] < date].iloc[-1]
 
-                    self.extras.loc[len(self.extras)] = [
+                    extras.loc[len(extras)] = [
                         date,
                         compte,
                         float(last_known["solde"]),
@@ -102,7 +101,7 @@ class compte:
 
         logging.info(f"Lignés complétées: {count}")
 
-        self.lignes = pd.concat([self.lignes, self.extras])
+        self.lignes = pd.concat([self.lignes, extras])
 
     def analyse_pea(self, fichier):
         logging.debug(
