@@ -73,7 +73,7 @@ class compte:
         Remplit les mois manquants avec le dernier solde connu.
         """
         count = 0
-        extras = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
+        extras = pd.DataFrame()
         # Récupère tous les comptes
         self.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
