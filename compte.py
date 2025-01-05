@@ -153,17 +153,24 @@ class compte:
         contenu = convertir_pdf(fichier)
 
         livret = extraire_section(contenu, "LIVRET BLEU", "Réf")
-        ldd = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Sous ")
-
         solde = analyse_livret(livret)
         if solde:
             self.ajout_solde(solde["date"], solde["compte"], "LIVRET", solde["solde"])
 
-        solde_ldd = analyse_autres_comptes(ldd)
-        if solde_ldd:
+        livret = extraire_section(
+            contenu, "LIVRET DE DEVELOPPEMENT DURABLE SOLIDAIRE", "Réf"
+        )
+        solde = analyse_livret(livret)
+        if solde:
+            self.ajout_solde(solde["date"], solde["compte"], "LDD", solde["solde"])
+
+        # dans le cas ou il n'y a pas de mouvement, le compte est dans la section autres comptes
+        livret = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Réf :")
+        solde = analyse_autres_comptes(livret)
+        if solde:
             self.ajout_solde(
-                solde_ldd["date"],
-                solde_ldd["compte"],
+                solde["date"],
+                solde["compte"],
                 "LDD",
-                solde_ldd["solde"],
+                solde["solde"],
             )
