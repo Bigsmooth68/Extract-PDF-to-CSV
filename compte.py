@@ -73,7 +73,7 @@ class compte:
         Remplit les mois manquants avec le dernier solde connu.
         """
         count = 0
-        extras = pd.DataFrame()
+        extras = self.lignes.drop(self.lignes.index)
         # Récupère tous les comptes
         self.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
@@ -102,6 +102,8 @@ class compte:
         logging.info(f"Lignés complétées: {count}")
 
         self.lignes = pd.concat([self.lignes, extras])
+
+        self.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
     def analyse_pea(self, fichier):
         logging.debug(
