@@ -109,7 +109,8 @@ class compte:
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
-        logging.info(f"Analyse du fichier {fichier.name}")
+        compte_solde = 0
+        logging.info(f"Analyse du fichier PEA: {fichier.name}")
         contenu = convertir_pdf(fichier)
 
         numero_compte = None
@@ -145,12 +146,15 @@ class compte:
             self.ajout_solde(
                 date_solde, numero_compte, type_compte, valeur, aligne_date=False
             )
+            compte_solde += 1
+        logging.info(f"Lignes PEA trouvées: {compte_solde}")
 
     def analyse_livret(self, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
-        logging.info(f"Analyse du fichier {fichier.name}")
+        compte_solde = 0
+        logging.info(f"Analyse du fichier livrets: {fichier.name}")
 
         contenu = convertir_pdf(fichier)
 
@@ -158,6 +162,7 @@ class compte:
         solde = analyse_livret(livret)
         if solde:
             self.ajout_solde(solde["date"], solde["compte"], "LIVRET", solde["solde"])
+            compte_solde += 1
 
         livret = extraire_section(
             contenu, "LIVRET DE DEVELOPPEMENT DURABLE SOLIDAIRE", "Réf"
@@ -165,6 +170,7 @@ class compte:
         solde = analyse_livret(livret)
         if solde:
             self.ajout_solde(solde["date"], solde["compte"], "LDD", solde["solde"])
+            compte_solde += 1
 
         # dans le cas ou il n'y a pas de mouvement, le compte est dans la section autres comptes
         livret = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Réf :")
@@ -176,3 +182,4 @@ class compte:
                 "LDD",
                 solde["solde"],
             )
+        logging.info(f"Ligne livrets trouvées: {compte_solde}")
