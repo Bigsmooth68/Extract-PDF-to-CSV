@@ -1,8 +1,7 @@
 import pandas as pd
 from date_utils import aligner_date
 import logging
-import re
-from date_utils import parse_date
+from datetime import datetime
 
 
 class compte:
@@ -17,7 +16,7 @@ class compte:
 
     def ajout_solde(
         self,
-        date_solde,
+        date_solde: datetime,
         numero_compte: str,
         type_compte: str,
         solde: str,

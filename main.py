@@ -7,6 +7,7 @@ import os
 
 from pea import pea
 from livret import livret
+from compte_courant import compte_courant
 
 import locale
 
@@ -22,6 +23,11 @@ def main():
 
     parser = argparse.ArgumentParser(
         prog="Analyse des extraits de comptes Crédit Mutuel"
+    )
+    parser.add_argument(
+        "-cc",
+        action="store_true",
+        help="Limite l'extraction aux relevés des comptes courants"
     )
     parser.add_argument(
         "-p",
@@ -42,13 +48,21 @@ def main():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Augmenter le niveau de log"
     )
+    parser.add_argument("-un", action="store_true", help="Traite le premier fichier uniquement")
     args = parser.parse_args()
 
+    flag_cc = True
     flag_pea = True
     flag_livret = True
+
+    if args.cc:
+        flag_livret = False
+        flag_pea = False
     if args.pea:
         flag_livret = False
+        flag_cc = False
     if args.livret:
+        flag_cc = False
         flag_pea = False
 
     if args.verbose:
@@ -57,6 +71,7 @@ def main():
     # Création des comptes
     epargne = livret()
     plan = pea()
+    cc = compte_courant()
 
     for dir in ["out", "cache"]:
         if not os.path.exists(dir):
@@ -71,9 +86,11 @@ def main():
     # Selection des fichiers
     for file in sorted(dir_path.glob("*.pdf")):
         if "EUROCOMPTE" in file.name:
-            fichiers_cc.append(file)
+            if flag_cc:
+                fichiers_cc.append(file)
         if "Portefeuille valoris" in file.name and flag_pea:
-            fichiers_pea.append(file)
+            if flag_pea:
+                fichiers_pea.append(file)
         else:
             if flag_livret:
                 fichiers_livret.append(file)
@@ -81,6 +98,16 @@ def main():
     logging.info(
         f"Fichiers sélectionnés: PEA {len(fichiers_pea)} - Livrets {len(fichiers_livret)} - Compte Courant {len(fichiers_cc)}"
     )
+    if args.un:
+        if flag_cc:
+            fichiers_cc = [fichiers_cc[0]]
+        if flag_livret:
+            fichiers_livret = [fichiers_livret[0]]
+        if flag_pea:
+            fichiers_pea = [fichiers_pea[0]]
+
+    for fichier in fichiers_cc:
+        cc.analyse(fichier)
 
     for fichier in fichiers_pea:
         plan.analyse(fichier)
@@ -88,16 +115,18 @@ def main():
     for fichier in fichiers_livret:
         epargne.analyse(fichier)
 
-    logging.info(f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes()}")
+    logging.info(f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes() + cc.nb_lignes()}")
 
     epargne.fill_missing_months()
 
     if args.out == "sql":
         epargne.generer_insert("epargne")
         plan.generer_insert("pea")
+        cc.generer_insert("cc")
     else:
         epargne.generer_csv("epargne.csv")
         plan.generer_csv("pea.csv")
+        cc.generer_csv("cc")
 
 
 if __name__ == "__main__":
