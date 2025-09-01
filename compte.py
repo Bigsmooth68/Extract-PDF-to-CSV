@@ -32,7 +32,7 @@ class compte:
             date_solde,
             numero_compte,
             solde,
-            type_compte,
+            type_compte.replace("'","''"),
         ]
 
     def generer_insert(self, table):
