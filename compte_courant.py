@@ -107,9 +107,11 @@ class compte_courant(compte):
             logging.info(df_all.loc[mask, "Date"])
             import sys
             sys.exit()
-
+        
+        df_all.dropna(inplace=True, subset=["Montant"])
+        
         ## génération des entrées
         df_all.apply(
-            lambda row: self.ajout_solde(row["Date"], "CC", "CC", row["Montant"],aligne_date=False),
+            lambda row: self.ajout_solde(row["Date"], 0, row["Opération"], row["Montant"],aligne_date=False),
             axis=1,
         )
