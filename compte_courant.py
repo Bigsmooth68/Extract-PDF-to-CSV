@@ -2,8 +2,7 @@ from compte import compte
 import logging
 import pdfplumber
 import pandas as pd
-import date_utils
-
+import re
 
 class compte_courant(compte):
     # def __init__(self):
@@ -87,16 +86,28 @@ class compte_courant(compte):
         )
         logging.debug(f"Somme débit carte: {df_cb['Débit'].sum()}")
 
-        # suppression des mouvements internes
-        for _ligne in ["VIR DE M OLIVIER SPIESSER", "RELEVE CARTE"]:
-            _filtre = df_cc_1["Opération"].str.contains(_ligne)
-            df_cc_2 = df_cc_1[~_filtre]
+
+        # liste des motifs à exclure
+        motifs = [
+            "VIR DE M OLIVIER SPIESSER",
+            "RELEVE CARTE",
+            "VIR M SPIESSER OLIVIER",
+            "VIR DE M SPIESSER OLIVIER",
+            "VIR MME MARIA SPIESSER",
+            "VIR SPIESSER MARIA",
+            "VIR DE MME MARIA SPIESSER",
+            "VIR M OU MME OLIVIER SPIESSE",
+            "VIR MR SPIESSER OLIVIER OU"
+        ]
+
+        # construction d'une regex OR
+        pattern = "|".join(re.escape(m) for m in motifs)
+
+        # filtrage en une seule passe
+        df_cc_2 = df_cc_1[~df_cc_1["Opération"].str.contains(pattern, na=False)]
 
         df_all = pd.concat([df_cc_2, df_cb])
 
-        logging.debug(
-            f"Somme débit: {df_cc_2['Débit'].sum()}  crédit: {df_cc_2['Crédit'].sum()}"
-        )
 
         # Changement Débit/Crédit en montant négatif/positif
         df_all["Montant"] = df_all["Crédit"].fillna(-df_all["Débit"])
@@ -109,6 +120,8 @@ class compte_courant(compte):
             sys.exit()
         
         df_all.dropna(inplace=True, subset=["Montant"])
+
+        logging.info(f"Lignes ajoutées: {len(df_all)}")
         
         ## génération des entrées
         df_all.apply(
