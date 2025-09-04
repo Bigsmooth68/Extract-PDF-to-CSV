@@ -97,7 +97,8 @@ class compte_courant(compte):
             "VIR SPIESSER MARIA",
             "VIR DE MME MARIA SPIESSER",
             "VIR M OU MME OLIVIER SPIESSE",
-            "VIR MR SPIESSER OLIVIER OU"
+            "VIR MR SPIESSER OLIVIER OU",
+            "VIR LIVRET BLEU"
         ]
 
         # construction d'une regex OR
