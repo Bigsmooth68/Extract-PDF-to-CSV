@@ -157,3 +157,4 @@ cython_debug/
 pdf/
 out/
 cache/
+config.toml

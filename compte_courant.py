@@ -4,12 +4,8 @@ import pdfplumber
 import pandas as pd
 import re
 
-class compte_courant(compte):
-    # def __init__(self):
-    #     self.lignes = pd.DataFrame(
-    #         columns=["date", "compte", "mouvement", "type_compte"]
-    #     )
 
+class compte_courant(compte):
     def analyse(self, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"
@@ -26,12 +22,12 @@ class compte_courant(compte):
                 entete = tableau[0]
                 if "Date valeur" in entete:
                     logging.debug("Ajout d'un tableau à CC")
-                    if len(tableau_cc) > 0: # ignorer l'entête si déjà présente
+                    if len(tableau_cc) > 0:  # ignorer l'entête si déjà présente
                         tableau = tableau[1:]
                     tableau_cc.extend(tableau)
                 elif "Commerce" in entete:
                     logging.debug("Ajout d'un tableau à CB")
-                    if len(tableau_cb) > 0: # ignorer l'entête si déjà présente
+                    if len(tableau_cb) > 0:  # ignorer l'entête si déjà présente
                         tableau = tableau[1:]
                     tableau_cb.extend(tableau)
                 else:
@@ -77,55 +73,47 @@ class compte_courant(compte):
                 .str.replace(",", ".", regex=False)
                 .pipe(pd.to_numeric, errors="coerce")
             )
-        df_cc_1 = df_cc[df_cc["Date"] != ""]
+        df_cc = df_cc[df_cc["Date"] != ""]
 
         # df_cc_1.to_excel("out/cc.xlsx", index=False)
 
         logging.debug(
-            f"Somme débit: {df_cc_1['Débit'].sum()}  crédit: {df_cc_1['Crédit'].sum()}"
+            f"Somme débit: {df_cc['Débit'].sum()}  crédit: {df_cc['Crédit'].sum()}"
         )
         logging.debug(f"Somme débit carte: {df_cb['Débit'].sum()}")
 
-
-        # liste des motifs à exclure
-        motifs = [
-            "VIR DE M OLIVIER SPIESSER",
-            "RELEVE CARTE",
-            "VIR M SPIESSER OLIVIER",
-            "VIR DE M SPIESSER OLIVIER",
-            "VIR MME MARIA SPIESSER",
-            "VIR SPIESSER MARIA",
-            "VIR DE MME MARIA SPIESSER",
-            "VIR M OU MME OLIVIER SPIESSE",
-            "VIR MR SPIESSER OLIVIER OU",
-            "VIR LIVRET BLEU"
-        ]
-
-        # construction d'une regex OR
-        pattern = "|".join(re.escape(m) for m in motifs)
-
-        # filtrage en une seule passe
-        df_cc_2 = df_cc_1[~df_cc_1["Opération"].str.contains(pattern, na=False)]
-
-        df_all = pd.concat([df_cc_2, df_cb])
-
+        df_all = pd.concat([df_cc, df_cb])
 
         # Changement Débit/Crédit en montant négatif/positif
         df_all["Montant"] = df_all["Crédit"].fillna(-df_all["Débit"])
         try:
             df_all["Date"] = pd.to_datetime(df_all["Date"], format="%d/%m/%Y")
         except:
-            mask = pd.to_datetime(df_all["Date"], format="%d/%m/%Y", errors="coerce").isna()
+            mask = pd.to_datetime(
+                df_all["Date"], format="%d/%m/%Y", errors="coerce"
+            ).isna()
             logging.info(df_all.loc[mask, "Date"])
             import sys
+
             sys.exit()
-        
+
         df_all.dropna(inplace=True, subset=["Montant"])
 
         logging.info(f"Lignes ajoutées: {len(df_all)}")
-        
+
         ## génération des entrées
         df_all.apply(
-            lambda row: self.ajout_solde(row["Date"], 0, row["Opération"], row["Montant"],aligne_date=False),
+            lambda row: self.ajout_solde(
+                row["Date"], 0, row["Opération"], row["Montant"], aligne_date=False
+            ),
             axis=1,
         )
+
+    def filtrer(self, filtre):
+        # construction d'une regex OR
+        pattern = "|".join(re.escape(m) for m in filtre)
+
+        # filtrage en une seule passe
+        self.lignes = self.lignes[
+            ~self.lignes["type_compte"].str.contains(pattern, na=False)
+        ]

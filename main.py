@@ -4,6 +4,7 @@ import logging
 import sys
 import argparse
 import os
+import tomllib
 
 from pea import pea
 from livret import livret
@@ -27,7 +28,7 @@ def main():
     parser.add_argument(
         "-cc",
         action="store_true",
-        help="Limite l'extraction aux relevés des comptes courants"
+        help="Limite l'extraction aux relevés des comptes courants",
     )
     parser.add_argument(
         "-p",
@@ -48,7 +49,12 @@ def main():
     parser.add_argument(
         "-v", "--verbose", action="store_true", help="Augmenter le niveau de log"
     )
-    parser.add_argument("-un", action="store_true", help="Traite le premier fichier uniquement")
+    parser.add_argument(
+        "-un", action="store_true", help="Traite le premier fichier uniquement"
+    )
+    parser.add_argument(
+        "-nf", action="store_true", help="Désactive le filtrage des mouvements internes à la banque"
+    )
     args = parser.parse_args()
 
     flag_cc = True
@@ -109,13 +115,20 @@ def main():
     for fichier in fichiers_cc:
         cc.analyse(fichier)
 
+    if not args.nf:
+        with open("config.toml", "rb") as cf:
+            config = tomllib.load(cf)
+            cc.filtrer(config["filtre"])
+
     for fichier in fichiers_pea:
         plan.analyse(fichier)
 
     for fichier in fichiers_livret:
         epargne.analyse(fichier)
 
-    logging.info(f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes() + cc.nb_lignes()}")
+    logging.info(
+        f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes() + cc.nb_lignes()}"
+    )
 
     epargne.fill_missing_months()
 

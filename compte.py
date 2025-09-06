@@ -8,6 +8,7 @@ class compte:
     lignes = None
 
     def __init__(self):
+        # initialise un dataframe vide
         self.lignes = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
 
     def nb_lignes(self):
@@ -32,7 +33,7 @@ class compte:
             date_solde,
             numero_compte,
             solde,
-            type_compte.replace("'","''"),
+            type_compte.replace("'", "''"),
         ]
 
     def generer_insert(self, table):
