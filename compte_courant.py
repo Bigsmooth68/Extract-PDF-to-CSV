@@ -117,3 +117,9 @@ class compte_courant(compte):
         self.lignes = self.lignes[
             ~self.lignes["type_compte"].str.contains(pattern, na=False)
         ]
+
+    def factoriser(self, groupes):
+
+        for g in groupes:
+            mask = self.lignes["type_compte"].str.contains(g, na=False)
+            self.lignes.loc[mask, "type_compte"] = g

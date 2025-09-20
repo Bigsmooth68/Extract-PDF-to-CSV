@@ -120,6 +120,8 @@ def main():
             config = tomllib.load(cf)
             cc.filtrer(config["filtre"])
 
+    cc.factoriser(config["groupement"])
+
     for fichier in fichiers_pea:
         plan.analyse(fichier)
 
