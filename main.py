@@ -28,6 +28,7 @@ def main():
     parser.add_argument(
         "-cc",
         action="store_true",
+        default=False,
         help="Limite l'extraction aux relevés des comptes courants",
     )
     parser.add_argument(
