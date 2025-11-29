@@ -54,7 +54,9 @@ def main():
         "-un", action="store_true", help="Traite le premier fichier uniquement"
     )
     parser.add_argument(
-        "-nf", action="store_true", help="Désactive le filtrage des mouvements internes à la banque"
+        "-nf",
+        action="store_true",
+        help="Désactive le filtrage des mouvements internes à la banque",
     )
     args = parser.parse_args()
 
@@ -90,8 +92,10 @@ def main():
     fichiers_pea = []
     fichiers_livret = []
 
+    files = dir_path.glob("*.pdf")
+
     # Selection des fichiers
-    for file in sorted(dir_path.glob("*.pdf")):
+    for file in sorted(files):
         if "EUROCOMPTE" in file.name:
             if flag_cc:
                 fichiers_cc.append(file)

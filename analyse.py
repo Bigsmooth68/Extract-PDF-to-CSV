@@ -50,7 +50,9 @@ def analyse_livret(text):
     """
     try:
         for line in text:
-            match = re.search(r" (\d{7,}) ", line)  # au moins 7 chiffres
+            match = re.search(r" (\d{10,}) ", line)  # au moins 10 chiffres
+            if "EUROCOMPTE" in line:
+                continue
             if match:
                 numero_compte = match[1]
                 logging.debug(f"Nouveau compte trouvé: {numero_compte}")
