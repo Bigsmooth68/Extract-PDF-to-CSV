@@ -158,3 +158,4 @@ pdf/
 out/
 cache/
 config.toml
+config.yml
