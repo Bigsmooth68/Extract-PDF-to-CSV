@@ -43,7 +43,7 @@ class compte:
         if len(self.lignes) > 0:
             self.lignes.drop_duplicates(inplace=True)
             with open(f"out/{table}.sql", "w", encoding="utf-8") as f:
-                f.writelines(f"TRUNCATE TABLE {table};\n###\n")
+                f.writelines(f"-- TRUNCATE TABLE {table};\n###\n")
                 for index, row in self.lignes.iterrows():
                     date_solde = row["date"].strftime("%Y-%m-%d")
                     numero_compte = row["compte"]
