@@ -7,7 +7,7 @@ import logging
 import sys
 
 
-def classify_depense(row):
+def classify_expense(row):
     prompt = f"""
     Tu es un assistant qui classe les dépenses bancaires.
     Donne un seul mot (ex: 'loyer', 'courses', 'salaire', 'loisirs', 'transport', etc.)
@@ -70,7 +70,7 @@ except Exception as X:
 df = df.head(20)
 
 logging.info(f"En cours d'analyse avec le model {MODEL} ...")
-df["type_depense"] = df.apply(classify_depense, axis=1)
+df["type_depense"] = df.apply(classify_expense, axis=1)
 
 logging.info("Normalisation des catégories")
 df["type_depense_corrige"] = df.apply(post_process_type_depense, axis=1)
