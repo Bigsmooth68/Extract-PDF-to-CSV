@@ -14,6 +14,7 @@ dependencies = [
     "psycopg2>=2.9.11",
     "pykernel>=0.1.6",
     "pypdf>=5.7.0",
+    "pyyaml>=6.0.3",
     "sqlalchemy>=2.0.45",
 ]
 
