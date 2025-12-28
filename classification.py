@@ -6,22 +6,23 @@ import ollama
 import logging
 import sys
 import yaml
+import signal
 
 class categories:
+    categories = None
     inverted = {}
 
     def __init__(self, file: str = "config.yml"):
         config = yaml.safe_load(open(file, encoding="utf-8"))
 
-        categories = config["categories"]
+        self.categories = [list(d.keys())[0] for d in config["categories"]]
 
-        for item in categories:  # item = chaque dict dans la liste
+        for item in config["categories"]:  # item = chaque dict dans la liste
             for category, merchants in item.items():
                 for merchant in merchants:
                     self.inverted[merchant] = category
 
         logging.info(f"{file} chargé")
-
 
     def classify_expense_manual(self, row):
         label = row["type_compte"].strip()
@@ -36,29 +37,38 @@ class categories:
                     return category
         # return pd.NA
 
-    @staticmethod
     def classify_expense_auto(self, row):
         prompt = f"""
         Tu es un assistant qui classe les dépenses bancaires.
-        Donne un seul mot (ex: 'loyer', 'courses', 'salaire', 'loisirs', 'transport', etc.)
+        Donne un seul mot parmis cette liste {self.categories}
         pour la catégorie de cette opération.
 
         date: {row["date"]}
         compte: {row["compte"]}
         solde: {row["solde"]}
-        type_compte: {row["type_compte"]}
+        opération: {row["type_compte"]}
         """
+        logging.info("==============================================================")
+        logging.info(f"prompt: {prompt}")
         logging.debug(f"classification {row['type_compte']}")
         response = ollama.chat(
             model=MODEL,
             messages=[{"role": "user", "content": prompt}],
         )
+        logging.info(f"reponse: {response}")
         cat = response["message"]["content"].strip()
         # on garde seulement le premier mot
         return cat.split()[0]
 
+
 #### FIN CLASS
 #### FIN FONCTIONS
+
+
+def sigint_handler(signal, frame):
+    print('Interrupted')
+    sys.exit(0)
+signal.signal(signal.SIGINT, sigint_handler)
 
 logging.basicConfig(
     stream=sys.stdout,
@@ -84,19 +94,28 @@ categories_list = categories()
 
 df["categorie"] = df.apply(categories_list.classify_expense_manual, axis=1)
 
-lignes_sans_categorie = len(df)
+lignes_totales = len(df)
 
-df = df[df["categorie"].notna()]
+df_manual = df[df["categorie"].notna()]
+df_auto = df[df["categorie"].isna()]
 
-logging.info(f"Mouvements catégorisé: {len(df)} (restant {lignes_sans_categorie-len(df)})")
+logging.info(
+    f"Mouvements catégorisé: {len(df_manual)} (restant { len(df_auto)})"
+)
 
-if len(df) == 0:
+# df_auto = df_auto.head(10)
+# df_auto["categorie"] = df_auto.apply(categories_list.classify_expense_auto, axis=1)
+
+# logging.info(f"\n{df_auto}")
+# exit(0)
+
+if len(df_manual) == 0:
     logging.warning("Rien à catégoriser")
     exit(1)
 
 # Ecriture des résultats
 with engine.begin() as conn:
-    for _, row in df.iterrows():
+    for _, row in df_manual.iterrows():
         conn.execute(
             text("""
                 UPDATE cc
@@ -106,5 +125,5 @@ with engine.begin() as conn:
             {
                 "categorie": row["categorie"],
                 "id": row["id"],
-            }
+            },
         )
