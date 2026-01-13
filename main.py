@@ -5,6 +5,7 @@ import sys
 import argparse
 import os
 import tomllib
+import shutil
 
 from pea import pea
 from livret import livret
@@ -117,8 +118,13 @@ def main():
         if flag_pea:
             fichiers_pea = [fichiers_pea[0]]
 
-    for fichier in fichiers_cc:
-        cc.analyse(fichier)
+    dossier_dest = Path(r"analyzed")
+
+    if flag_cc:
+        for fichier in fichiers_cc:
+            cc.analyse(fichier)
+            destination = dossier_dest / fichier.name
+            shutil.move(fichier, destination)
 
     if not args.nf:
         with open("config.toml", "rb") as cf:
@@ -127,11 +133,15 @@ def main():
 
     cc.factoriser(config["groupement"])
 
-    for fichier in fichiers_pea:
-        plan.analyse(fichier)
+    if flag_pea:
+        for fichier in fichiers_pea:
+            plan.analyse(fichier)
 
-    for fichier in fichiers_livret:
-        epargne.analyse(fichier)
+
+    if flag_livret:
+        for fichier in fichiers_livret:
+            epargne.analyse(fichier)
+            
 
     logging.info(
         f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes() + cc.nb_lignes()}"
