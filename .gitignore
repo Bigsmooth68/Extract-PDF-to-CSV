@@ -155,6 +155,7 @@ dmypy.json
 cython_debug/
 
 pdf/
+analyzed/
 out/
 cache/
 config.toml
