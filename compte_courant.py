@@ -7,10 +7,10 @@ import re
 
 class compte_courant(compte):
 
-    def __init__(self, colonne_valeur="montant"):
+    def __init__(self_, colonne_valeur="montant"):
         super().__init__(colonne_valeur)
 
-    def analyse(self, fichier):
+    def analyse(self_, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
@@ -107,22 +107,23 @@ class compte_courant(compte):
 
         ## génération des entrées
         df_all.apply(
-            lambda row: self.ajout_solde(
+            lambda row: self_.ajout_solde(
                 row["Date"], 0, row["Opération"], row["Montant"], aligne_date=False
             ),
             axis=1,
         )
+        self_.analyse_finie(fichier)
 
-    def filtrer(self, filtre):
+    def filtrer(self_, filtre):
         # construction d'une regex OR
         pattern = "|".join(re.escape(m) for m in filtre)
 
         # filtrage en une seule passe
-        self.lignes = self.lignes[
-            ~self.lignes["type_compte"].str.contains(pattern, na=False)
+        self_.lignes = self_.lignes[
+            ~self_.lignes["type_compte"].str.contains(pattern, na=False)
         ]
 
-    def factoriser(self, groupes):
+    def factoriser(self_, groupes):
         for g in groupes:
-            mask = self.lignes["type_compte"].str.contains(g, na=False)
-            self.lignes.loc[mask, "type_compte"] = g
+            mask = self_.lignes["type_compte"].str.contains(g, na=False)
+            self_.lignes.loc[mask, "type_compte"] = g

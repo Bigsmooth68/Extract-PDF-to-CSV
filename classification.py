@@ -12,35 +12,35 @@ class categories:
     categories = None
     inverted = {}
 
-    def __init__(self, file: str = "config.yml"):
+    def __init__(self_, file: str = "config.yml"):
         config = yaml.safe_load(open(file, encoding="utf-8"))
 
-        self.categories = [list(d.keys())[0] for d in config["categories"]]
+        self_.categories = [list(d.keys())[0] for d in config["categories"]]
 
         for item in config["categories"]:  # item = chaque dict dans la liste
             for category, merchants in item.items():
                 for merchant in merchants:
-                    self.inverted[merchant] = category
+                    self_.inverted[merchant] = category
 
         logging.info(f"{file} chargé")
 
-    def classify_expense_manual(self, row):
+    def classify_expense_manual(self_, row):
         label = row["type_compte"].strip()
 
-        cat = self.inverted.get(label, None)
+        cat = self_.inverted.get(label, None)
         if cat:
             return cat
         # boucle sur les motifs partiels
         else:
-            for pattern, category in self.inverted.items():
+            for pattern, category in self_.inverted.items():
                 if pattern in label:
                     return category
         # return pd.NA
 
-    def classify_expense_auto(self, row):
+    def classify_expense_auto(self_, row):
         prompt = f"""
         Tu es un assistant qui classe les dépenses bancaires.
-        Donne un mot et un seul parmis cette liste {self.categories}
+        Donne un mot et un seul parmis cette liste {self_.categories}
         pour la catégorie de cette opération.
 
         date: {row["date"]}

@@ -5,8 +5,6 @@ import sys
 import argparse
 import os
 import tomllib
-import shutil
-
 from pea import pea
 from livret import livret
 from compte_courant import compte_courant
@@ -118,13 +116,9 @@ def main():
         if flag_pea:
             fichiers_pea = [fichiers_pea[0]]
 
-    dossier_dest = Path(r"analyzed")
-
     if flag_cc:
         for fichier in fichiers_cc:
             cc.analyse(fichier)
-            destination = dossier_dest / fichier.name
-            shutil.move(fichier, destination)
 
     if not args.nf:
         with open("config.toml", "rb") as cf:

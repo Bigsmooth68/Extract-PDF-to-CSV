@@ -10,7 +10,7 @@ from analyse import (
 
 
 class livret(compte):
-    def analyse(self, fichier):
+    def analyse(self_, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
@@ -22,7 +22,7 @@ class livret(compte):
         livret = extraire_section(contenu, "LIVRET BLEU", "Réf")
         solde = analyse_livret(livret)
         if solde:
-            self.ajout_solde(solde["date"], solde["compte"], "LIVRET", solde["solde"])
+            self_.ajout_solde(solde["date"], solde["compte"], "LIVRET", solde["solde"])
             compte_solde += 1
 
         livret = extraire_section(
@@ -30,17 +30,19 @@ class livret(compte):
         )
         solde = analyse_livret(livret)
         if solde:
-            self.ajout_solde(solde["date"], solde["compte"], "LDD", solde["solde"])
+            self_.ajout_solde(solde["date"], solde["compte"], "LDD", solde["solde"])
             compte_solde += 1
 
         # dans le cas ou il n'y a pas de mouvement, le compte est dans la section autres comptes
         livret = extraire_section(contenu, "SITUATION DE VOS AUTRES COMPTES", "Réf :")
         solde = analyse_autres_comptes(livret)
         if solde:
-            self.ajout_solde(
+            self_.ajout_solde(
                 solde["date"],
                 solde["compte"],
                 "LDD",
                 solde["solde"],
             )
         logging.info(f"Ligne livrets trouvées: {compte_solde}")
+
+        self_.analyse_finie(fichier)

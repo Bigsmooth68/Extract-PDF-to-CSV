@@ -11,7 +11,7 @@ from analyse import (
 
 
 class pea(compte):
-    def analyse(self, fichier):
+    def analyse(self_, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"
         )
@@ -49,8 +49,10 @@ class pea(compte):
                 r"\b(\d{1,3}(?:\s\d{3})*,\d{2})\b", extract_fiscalite[index]
             )
             valeur = formater_solde(match[1])
-            self.ajout_solde(
+            self_.ajout_solde(
                 date_solde, numero_compte, type_compte, valeur, aligne_date=False
             )
             compte_solde += 1
         logging.info(f"Lignes PEA trouvées: {compte_solde}")
+
+        self_.analyse_finie(fichier)
