@@ -6,6 +6,10 @@ import re
 
 
 class compte_courant(compte):
+
+    def __init__(self, colonne_valeur="montant"):
+        super().__init__(colonne_valeur)
+
     def analyse(self, fichier):
         logging.debug(
             "*************************** NEW FILE ***************************"

@@ -6,10 +6,12 @@ from datetime import datetime
 
 class compte:
     lignes = None
+    colonne_valeur = None
 
-    def __init__(self):
+    def __init__(self, colonne_valeur="solde"):
         # initialise un dataframe vide
-        self.lignes = pd.DataFrame(columns=["date", "compte", "solde", "type_compte"])
+        self.colonne_valeur = colonne_valeur
+        self.lignes = pd.DataFrame(columns=["date", "compte", colonne_valeur, "type_compte"])
 
     def nb_lignes(self):
         len1 = len(self.lignes) if self.lignes is not None else 0
@@ -47,10 +49,10 @@ class compte:
                 for index, row in self.lignes.iterrows():
                     date_solde = row["date"].strftime("%Y-%m-%d")
                     numero_compte = row["compte"]
-                    solde = row["solde"]
+                    solde = row[self.colonne_valeur]
                     type_compte = row["type_compte"]
                     f.writelines(
-                        f"INSERT INTO {table} (date, compte, solde, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n"
+                        f"INSERT INTO {table} (date, compte, {self.colonne_valeur}, type_compte) VALUES (TO_DATE('{date_solde}','YYYY-MM-DD'), '{numero_compte}', '{solde}', '{type_compte}');\n"
                     )
 
     def generer_csv(self, fichier):
