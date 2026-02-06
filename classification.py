@@ -40,7 +40,7 @@ class categories:
     def classify_expense_auto(self, row):
         prompt = f"""
         Tu es un assistant qui classe les dépenses bancaires.
-        Donne un seul mot parmis cette liste {self.categories}
+        Donne un mot et un seul parmis cette liste {self.categories}
         pour la catégorie de cette opération.
 
         date: {row["date"]}
@@ -103,6 +103,7 @@ logging.info(
     f"Mouvements catégorisé: {len(df_manual)} (restant { len(df_auto)})"
 )
 
+### test
 # df_auto = df_auto.head(10)
 # df_auto["categorie"] = df_auto.apply(categories_list.classify_expense_auto, axis=1)
 
