@@ -98,7 +98,7 @@ def main():
         if "EUROCOMPTE" in file.name:
             if flag_cc:
                 fichiers_cc.append(file)
-        if "Portefeuille valoris" in file.name and flag_pea:
+        elif "Portefeuille valoris" in file.name and flag_pea:
             if flag_pea:
                 fichiers_pea.append(file)
         else:
