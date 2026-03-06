@@ -131,11 +131,9 @@ def main():
         for fichier in fichiers_pea:
             plan.analyse(fichier)
 
-
     if flag_livret:
         for fichier in fichiers_livret:
             epargne.analyse(fichier)
-            
 
     logging.info(
         f"Lignes générées: {plan.nb_lignes() + epargne.nb_lignes() + cc.nb_lignes()}"

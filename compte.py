@@ -5,6 +5,7 @@ from datetime import datetime
 import shutil
 from pathlib import Path
 
+
 class compte:
     lignes = None
     colonne_valeur = None
@@ -12,7 +13,9 @@ class compte:
     def __init__(self_, colonne_valeur="solde"):
         # initialise un dataframe vide
         self_.colonne_valeur = colonne_valeur
-        self_.lignes = pd.DataFrame(columns=["date", "compte", colonne_valeur, "type_compte"])
+        self_.lignes = pd.DataFrame(
+            columns=["date", "compte", colonne_valeur, "type_compte"]
+        )
 
     def nb_lignes(self_):
         len1 = len(self_.lignes) if self_.lignes is not None else 0

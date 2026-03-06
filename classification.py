@@ -8,6 +8,7 @@ import sys
 import yaml
 import signal
 
+
 class categories:
     categories = None
     inverted = {}
@@ -66,8 +67,10 @@ class categories:
 
 
 def sigint_handler(signal, frame):
-    print('Interrupted')
+    print("Interrupted")
     sys.exit(0)
+
+
 signal.signal(signal.SIGINT, sigint_handler)
 
 logging.basicConfig(
@@ -99,9 +102,7 @@ lignes_totales = len(df)
 df_manual = df[df["categorie"].notna()]
 df_auto = df[df["categorie"].isna()]
 
-logging.info(
-    f"Mouvements catégorisé: {len(df_manual)} (restant { len(df_auto)})"
-)
+logging.info(f"Mouvements catégorisé: {len(df_manual)} (restant {len(df_auto)})")
 
 ### test
 # df_auto = df_auto.head(10)
