@@ -5,6 +5,8 @@ import sys
 import argparse
 import os
 import tomllib
+from dotenv import load_dotenv
+from sqlalchemy import create_engine
 from pea import pea
 from livret import livret
 from compte_courant import compte_courant
@@ -95,15 +97,12 @@ def main():
 
     # Selection des fichiers
     for file in sorted(files):
-        if "EUROCOMPTE" in file.name:
-            if flag_cc:
-                fichiers_cc.append(file)
-        elif "Portefeuille valoris" in file.name and flag_pea:
-            if flag_pea:
-                fichiers_pea.append(file)
-        else:
-            if flag_livret:
-                fichiers_livret.append(file)
+        if flag_cc and "EUROCOMPTE" in file.name:
+            fichiers_cc.append(file)
+        elif flag_pea and "Portefeuille valoris" in file.name:
+            fichiers_pea.append(file)
+        elif flag_livret and ("LIVRET" in file.name or "COMPTE COURANT EN CHF" in file.name):
+            fichiers_livret.append(file)
 
     logging.info(
         f"Fichiers sélectionnés: PEA {len(fichiers_pea)} - Livrets {len(fichiers_livret)} - Compte Courant {len(fichiers_cc)}"
@@ -141,14 +140,18 @@ def main():
 
     epargne.fill_missing_months()
 
+    load_dotenv()
+    DB_URL = os.environ.get("DB_URL")
+    engine = create_engine(url=DB_URL)
+
     if args.out == "sql":
-        epargne.generer_insert("epargne")
-        plan.generer_insert("pea")
-        cc.generer_insert("cc")
+        epargne.generer_sql(engine, "epargne")
+        plan.generer_sql(engine, "pea")
+        cc.generer_sql(engine, "cc")
     else:
         epargne.generer_csv("epargne.csv")
         plan.generer_csv("pea.csv")
-        cc.generer_csv("cc")
+        cc.generer_csv("cc.csv")
 
 
 if __name__ == "__main__":

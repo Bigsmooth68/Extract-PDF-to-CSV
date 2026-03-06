@@ -9,8 +9,9 @@ from pathlib import Path
 class compte:
     lignes = None
     colonne_valeur = None
+    deplacement = False
 
-    def __init__(self_, colonne_valeur="solde"):
+    def __init__(self_, colonne_valeur="solde", deplacement=False):
         # initialise un dataframe vide
         self_.colonne_valeur = colonne_valeur
         self_.lignes = pd.DataFrame(
@@ -66,49 +67,48 @@ class compte:
         if len(self_.lignes) > 0:
             logging.debug(self_.lignes)
             self_.lignes.to_csv(f"out/{fichier}", index=False)
+    
+    def generer_sql(self_, con, table):
+        if len(self_.lignes) > 0:
+            logging.debug(self_.lignes)
+            self_.lignes.to_sql(name=table, con=con, if_exists='replace')
 
     def fill_missing_months(self_):
         """
         Remplit les mois manquants avec le dernier solde connu.
         """
-        count = 0
-        extras = self_.lignes.drop(self_.lignes.index)
-        # Récupère tous les comptes
         self_.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
-        comptes = self_.lignes["compte"].unique()
+        # Détecte les doublons avant de continuer
+        duplicates = self_.lignes[self_.lignes.duplicated(subset=["date", "compte"], keep=False)]
+        if not duplicates.empty:
+            logging.warning(f"Doublons détectés ({len(duplicates)} lignes) :\n{duplicates}")
+            self_.lignes = self_.lignes.drop_duplicates(subset=["date", "compte"], keep="last")
 
-        for compte in comptes:
-            soldes = self_.lignes[self_.lignes["compte"] == compte]
+        extras = []
 
-            date_range = pd.date_range(
-                start=soldes["date"].min(), end=soldes["date"].max(), freq="MS"
-            )
-            # Pour chaque date manquante, trouve le dernier solde connu
-            for date in date_range:
-                if date not in soldes["date"].values:
-                    # Trouve le dernier solde connu avant cette date
-                    last_known = soldes[soldes["date"] < date].iloc[-1]
+        for compte, group in self_.lignes.groupby("compte"):
+            group = group.set_index("date")
+            date_range = pd.date_range(group.index.min(), group.index.max(), freq="MS")
+            reindexed = group.reindex(date_range)
+            reindexed["compte"] = compte
+            reindexed["type_compte"] = reindexed["type_compte"].fillna("ajout")
+            reindexed["solde"] = reindexed["solde"].ffill()
+            reindexed.index.name = "date"
+            extras.append(reindexed.reset_index())
 
-                    extras.loc[len(extras)] = [
-                        date,
-                        compte,
-                        float(last_known["solde"]),
-                        "ajout",
-                    ]
-                    count += 1
-
-        logging.info(f"Lignés complétées: {count}")
-
-        self_.lignes = pd.concat([self_.lignes, extras])
-
-        self_.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
+        if extras:
+            filled = pd.concat(extras).reset_index(drop=True)
+            count = len(filled) - len(self_.lignes)
+            logging.info(f"Lignes complétées: {count}")
+            self_.lignes = filled.sort_values(["date", "compte"])
 
     def analyse(self_, fichier):
         pass
 
     def analyse_finie(self_, fichier):
         logging.info(f"Analyse terminée pour le fichier (déplacement): {fichier.name}")
-        dossier_dest = Path(r"analyzed")
-        destination = dossier_dest / fichier.name
-        shutil.move(fichier, destination)
+        if self_.deplacement:
+            dossier_dest = Path(r"analyzed")
+            destination = dossier_dest / fichier.name
+            shutil.move(fichier, destination)
