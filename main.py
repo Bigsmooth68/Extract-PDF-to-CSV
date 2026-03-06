@@ -42,6 +42,9 @@ def main():
         "-l", "--livret", action="store_true", help="Limite l'extraction aux livrets"
     )
     parser.add_argument(
+        "-f", "--filtre", help="Filtre le nom des fichiers traités"
+    )
+    parser.add_argument(
         "-o",
         "--out",
         choices=["csv", "sql"],
@@ -95,8 +98,15 @@ def main():
 
     files = dir_path.glob("*.pdf")
 
+    filtre = args.filtre
+
+    if filtre:
+        filtered_files = [f for f in dir_path.glob("*.pdf") if filtre in f.name]
+    else:
+        filtered_files = files
+
     # Selection des fichiers
-    for file in sorted(files):
+    for file in sorted(filtered_files):
         if flag_cc and "EUROCOMPTE" in file.name:
             fichiers_cc.append(file)
         elif flag_pea and "Portefeuille valoris" in file.name:
@@ -140,18 +150,30 @@ def main():
 
     epargne.fill_missing_months()
 
+    if filtre:
+        exit()
+
     load_dotenv()
     DB_URL = os.environ.get("DB_URL")
     engine = create_engine(url=DB_URL)
+    logging.info("Connecté à la base de données")
 
     if args.out == "sql":
-        epargne.generer_sql(engine, "epargne")
-        plan.generer_sql(engine, "pea")
-        cc.generer_sql(engine, "cc")
+        if flag_livret:
+            epargne.generer_sql(engine, "epargne")
+        if flag_pea:
+            plan.generer_sql(engine, "pea")
+        if flag_cc:
+            cc.generer_sql(engine, "cc")
+
     else:
-        epargne.generer_csv("epargne.csv")
-        plan.generer_csv("pea.csv")
-        cc.generer_csv("cc.csv")
+        if flag_livret:
+            epargne.generer_csv("epargne.csv")
+        if flag_pea:
+            plan.generer_csv("pea.csv")
+        if flag_cc:
+            cc.generer_csv("cc.csv")
+
 
 
 if __name__ == "__main__":
