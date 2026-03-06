@@ -67,11 +67,13 @@ class compte:
         if len(self_.lignes) > 0:
             logging.debug(self_.lignes)
             self_.lignes.to_csv(f"out/{fichier}", index=False)
+            logging.info(f"Fichier '{fichier}' écrit")
     
     def generer_sql(self_, con, table):
         if len(self_.lignes) > 0:
             logging.debug(self_.lignes)
             self_.lignes.to_sql(name=table, con=con, if_exists='replace')
+            logging.info(f"Table '{table}' écrit")
 
     def fill_missing_months(self_):
         """
