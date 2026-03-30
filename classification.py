@@ -102,7 +102,7 @@ lignes_totales = len(df)
 df_manual = df[df["categorie"].notna()]
 df_auto = df[df["categorie"].isna()]
 
-logging.info(f"Mouvements catégorisé: {len(df_manual)} (restant {len(df_auto)})")
+logging.info(f"Mouvements catégorisés: {len(df_manual)} (restant {len(df_auto)})")
 
 ### test
 # df_auto = df_auto.head(10)
