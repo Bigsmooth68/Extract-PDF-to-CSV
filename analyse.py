@@ -91,8 +91,8 @@ def analyse_autres_comptes(text):
                 return resultat
 
 
-def formater_solde(str):
+def formater_solde(str)-> float:
     """
     Conversion d'une chaine contenant un solde (1 433,21) vers une chaine nombre (1433.21)
     """
-    return str.replace(" ", "").replace(",", ".")
+    return float(str.replace(" ", "").replace(",", "."))
