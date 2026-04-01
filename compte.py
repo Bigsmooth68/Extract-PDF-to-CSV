@@ -73,7 +73,7 @@ class compte:
         if len(self_.lignes) > 0:
             logging.debug(self_.lignes)
             self_.lignes.to_sql(name=table, con=con, if_exists='replace')
-            logging.info(f"Table '{table}' écrit")
+            logging.info(f"Table '{table}' écrit ({len(self_.lignes)} lignes)")
 
     def fill_missing_months(self_):
         """
