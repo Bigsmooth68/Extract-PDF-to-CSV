@@ -16,6 +16,7 @@ class categories:
     def __init__(self_, file: str = "config.yml"):
         config = yaml.safe_load(open(file, encoding="utf-8"))
 
+        # Charger les catégories et construire le dictionnaire inversé
         self_.categories = [list(d.keys())[0] for d in config["categories"]]
 
         for item in config["categories"]:  # item = chaque dict dans la liste
@@ -83,13 +84,16 @@ load_dotenv()
 DB_URL = os.environ.get("DB_URL")
 MODEL = os.environ.get("MODEL")
 engine = create_engine(url=DB_URL)
+connection = engine.connect()
 
 try:
     df = pd.read_sql("select * from cc where categorie is null", con=engine)
     logging.info("Connecté à la base")
 except Exception as X:
     logging.error(X)
-    exit(1)
+    connection.execute(text("ALTER TABLE cc ADD COLUMN IF NOT EXISTS categorie TEXT"))
+    df = pd.read_sql("select * from cc where categorie is null", con=engine)
+    # exit(1)
 
 # df = df.head(100)
 
@@ -102,8 +106,6 @@ lignes_totales = len(df)
 df_manual = df[df["categorie"].notna()]
 df_auto = df[df["categorie"].isna()]
 
-logging.info(f"Mouvements catégorisés: {len(df_manual)} (restant {len(df_auto)})")
-
 ### test
 # df_auto = df_auto.head(10)
 # df_auto["categorie"] = df_auto.apply(categories_list.classify_expense_auto, axis=1)
@@ -114,6 +116,8 @@ logging.info(f"Mouvements catégorisés: {len(df_manual)} (restant {len(df_auto)
 if len(df_manual) == 0:
     logging.warning("Rien à catégoriser")
     exit(1)
+else:
+    logging.info(f"Mouvements catégorisés: {len(df_manual)} (restant {len(df_auto)})")
 
 # Ecriture des résultats
 with engine.begin() as conn:
@@ -122,10 +126,10 @@ with engine.begin() as conn:
             text("""
                 UPDATE cc
                 SET categorie = :categorie
-                WHERE id = :id
+                WHERE index = :id
             """),
             {
                 "categorie": row["categorie"],
-                "id": row["id"],
+                "id": row["index"],
             },
         )
