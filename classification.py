@@ -95,9 +95,9 @@ except Exception as X:
     df = pd.read_sql("select * from cc where categorie is null", con=engine)
     # exit(1)
 
-# df = df.head(100)
-
 categories_list = categories()
+
+logging.info(df)
 
 df["categorie"] = df.apply(categories_list.classify_expense_manual, axis=1)
 

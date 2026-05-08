@@ -164,6 +164,7 @@ def main():
         if flag_pea:
             plan.generer_sql(engine, "pea")
         if flag_cc:
+            cc.lignes["categorie"] = None
             cc.generer_sql(engine, "cc")
 
     else:
