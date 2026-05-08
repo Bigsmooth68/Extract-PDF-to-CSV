@@ -41,9 +41,7 @@ def main():
     parser.add_argument(
         "-l", "--livret", action="store_true", help="Limite l'extraction aux livrets"
     )
-    parser.add_argument(
-        "-f", "--filtre", help="Filtre le nom des fichiers traités"
-    )
+    parser.add_argument("-f", "--filtre", help="Filtre le nom des fichiers traités")
     parser.add_argument(
         "-o",
         "--out",
@@ -111,7 +109,9 @@ def main():
             fichiers_cc.append(file)
         elif flag_pea and "Portefeuille valoris" in file.name:
             fichiers_pea.append(file)
-        elif flag_livret and ("LIVRET" in file.name or "COMPTE COURANT EN CHF" in file.name):
+        elif flag_livret and (
+            "LIVRET" in file.name or "COMPTE COURANT EN CHF" in file.name
+        ):
             fichiers_livret.append(file)
 
     logging.info(
@@ -173,7 +173,6 @@ def main():
             plan.generer_csv("pea.csv")
         if flag_cc:
             cc.generer_csv("cc.csv")
-
 
 
 if __name__ == "__main__":

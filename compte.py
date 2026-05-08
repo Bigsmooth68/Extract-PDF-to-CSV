@@ -68,12 +68,14 @@ class compte:
             logging.debug(self_.lignes)
             self_.lignes.to_csv(f"out/{fichier}", index=False)
             logging.info(f"Fichier '{fichier}' écrit")
-    
+
     def generer_sql(self_, con, table):
         if len(self_.lignes) > 0:
             logging.debug(self_.lignes)
-            self_.lignes.to_sql(name=table, con=con, if_exists='replace')
+            self_.lignes.to_sql(name=table, con=con, if_exists="replace")
             logging.info(f"Table '{table}' écrit ({len(self_.lignes)} lignes)")
+        else:
+            logging.warning(f"Aucune ligne à écrire pour la table '{table}'")
 
     def fill_missing_months(self_):
         """
@@ -82,10 +84,16 @@ class compte:
         self_.lignes.sort_values(["date", "compte"], ascending=True, inplace=True)
 
         # Détecte les doublons avant de continuer
-        duplicates = self_.lignes[self_.lignes.duplicated(subset=["date", "compte"], keep=False)]
+        duplicates = self_.lignes[
+            self_.lignes.duplicated(subset=["date", "compte"], keep=False)
+        ]
         if not duplicates.empty:
-            logging.warning(f"Doublons détectés ({len(duplicates)} lignes) :\n{duplicates}")
-            self_.lignes = self_.lignes.drop_duplicates(subset=["date", "compte"], keep="last")
+            logging.warning(
+                f"Doublons détectés ({len(duplicates)} lignes) :\n{duplicates}"
+            )
+            self_.lignes = self_.lignes.drop_duplicates(
+                subset=["date", "compte"], keep="last"
+            )
 
         extras = []
 
@@ -109,7 +117,7 @@ class compte:
         pass
 
     def analyse_finie(self_, fichier):
-        logging.info(f"Analyse terminée pour le fichier (déplacement): {fichier.name}")
+        logging.info(f"Analyse terminée pour le fichier : {fichier.name}")
         if self_.deplacement:
             dossier_dest = Path(r"analyzed")
             destination = dossier_dest / fichier.name
