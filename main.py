@@ -88,7 +88,7 @@ def main():
         if not os.path.exists(dir):
             os.makedirs(dir)
 
-    dir_path = Path(".\\pdf")
+    dir_path = Path(".\\in")
 
     fichiers_cc = []
     fichiers_pea = []
