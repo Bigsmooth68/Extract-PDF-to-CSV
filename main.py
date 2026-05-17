@@ -81,6 +81,11 @@ def main():
     if args.livret:
         flag_cc = False
         flag_pea = False
+    if args.csv:
+        flag_cc = False
+        flag_pea = False
+        flag_livret = False
+        flag_csv = True
 
     if args.verbose:
         logging.getLogger().setLevel(logging.DEBUG)
@@ -100,7 +105,7 @@ def main():
     fichiers_pea = []
     fichiers_livret = []
 
-    if not args.csv:
+    if not flag_csv:
         pdf_files = dir_path.glob("*.pdf")
 
         filtre = args.filtre
@@ -169,7 +174,9 @@ def main():
             csv.analyse(file)
             print(csv)
             csv.generer_insert(file.name[:-4])
+
     load_dotenv()
+
     DB_URL = os.environ.get("DB_URL")
     engine = create_engine(url=DB_URL)
     logging.info("Connecté à la base de données")
@@ -182,6 +189,8 @@ def main():
         if flag_cc:
             cc.lignes["categorie"] = None
             cc.generer_sql(engine, "cc")
+        if flag_csv:
+            csv.generer_sql(engine, "csv")
 
     else:
         if flag_livret:
