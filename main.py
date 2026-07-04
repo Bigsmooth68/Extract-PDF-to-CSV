@@ -45,7 +45,7 @@ def main():
     parser.add_argument(
         "-csv",
         action="store_true",
-        help="Limite l'extraction aux relevés des comptes csv",
+        help="Limite l'analyse aux relevés des comptes en csv",
     )
     parser.add_argument("-f", "--filtre", help="Filtre le nom des fichiers traités")
     parser.add_argument(
@@ -71,6 +71,7 @@ def main():
     flag_cc = True
     flag_pea = True
     flag_livret = True
+    flag_csv = False
 
     if args.cc:
         flag_livret = False
@@ -117,7 +118,8 @@ def main():
 
         # Selection des fichiers
         for file in sorted(filtered_pdf_files):
-            if flag_cc and "EUROCOMPTE" in file.name:
+            logging.debug(f"Fichier trouvé: {file.name}")
+            if flag_cc and ("EUROCOMPTE" in file.name): # or "COMPTEDEDEPOTS" in file.name):
                 fichiers_cc.append(file)
             elif flag_pea and "Portefeuille valoris" in file.name:
                 fichiers_pea.append(file)
@@ -125,10 +127,13 @@ def main():
                 "LIVRET" in file.name or "COMPTE COURANT EN CHF" in file.name
             ):
                 fichiers_livret.append(file)
-
         logging.info(
             f"Fichiers sélectionnés: PEA {len(fichiers_pea)} - Livrets {len(fichiers_livret)} - Compte Courant {len(fichiers_cc)}"
         )
+        # Pause
+        if logging.getLogger().isEnabledFor(logging.DEBUG):
+            input("Appuyez sur Entrée pour continuer...")
+            
         if args.un:
             if flag_cc:
                 fichiers_cc = [fichiers_cc[0]]
@@ -175,13 +180,14 @@ def main():
             print(csv)
             csv.generer_insert(file.name[:-4])
 
-    load_dotenv()
-
-    DB_URL = os.environ.get("DB_URL")
-    engine = create_engine(url=DB_URL)
-    logging.info("Connecté à la base de données")
 
     if args.out == "sql":
+
+        load_dotenv()
+        DB_URL = os.environ.get("DB_URL")
+        engine = create_engine(url=DB_URL)
+        logging.info("Connecté à la base de données")
+        
         if flag_livret:
             epargne.generer_sql(engine, "epargne")
         if flag_pea:

@@ -19,8 +19,14 @@ class compte_courant(compte):
         tableau_cb = []
         num_page = 1
         for page in pdf.pages:
+
             logging.debug(f"Traitement de la page {num_page}")
+
             tableaux = page.extract_tables()
+            # tableaux = page.extract_tables({"vertical_strategy": "text", "horizontal_strategy": "text"})
+
+            logging.debug(f"Nombre de tableaux trouvés: {len(tableaux)}")
+
             for tableau in tableaux:
                 entete = tableau[0]
                 if "Date valeur" in entete:
@@ -35,6 +41,7 @@ class compte_courant(compte):
                     tableau_cb.extend(tableau)
                 else:
                     logging.debug(f"Tableau ignoré: {tableau[0]}")
+
             num_page += 1
 
         pdf.close()

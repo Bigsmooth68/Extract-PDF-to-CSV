@@ -74,12 +74,12 @@ def analyse_autres_comptes(text):
     Analyse des lignes correspondant aux livrets Bleu, LDD dans la section "autres comptes"
     """
     for line in text:
-        logging.debug(line)
+        logging.debug(f"analyse_autres_comptes: {line}")
         if "SITUATION DE VOS AUTRES COMPTES" in line:
             pattern = r"au (\d{1,2} \w+ \d{4})"
             date_str = re.search(pattern, line).group(1)
             date_solde = parse_date_texte(date_str)
-        elif "LIVRET DE DEVELOPPEMENT DURABLE SOLIDAIRE" in line:
+        elif ("LIVRET DE DEVELOPPEMENT DURABLE SOLIDAIRE" in line) or ("LIVRET BLEU" in line):
             match = re.search(r"(\d.+\d) .+EUR .(\d{1,3}(\.?\d{3})*,\d+)", line)
             if match:
                 numero_compte = match[1]
