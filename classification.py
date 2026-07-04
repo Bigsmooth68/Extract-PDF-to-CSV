@@ -97,7 +97,7 @@ except Exception as X:
 
 categories_list = categories()
 
-logging.info(df)
+logging.debug(df)
 
 df["categorie"] = df.apply(categories_list.classify_expense_manual, axis=1)
 
