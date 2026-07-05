@@ -1,15 +1,6 @@
 from compte import compte
 import logging
-import re
-from date_utils import parse_date
 import pandas as pd
-
-from analyse import (
-    extraire_section,
-    convertir_pdf,
-    formater_solde,
-)
-
 
 class compte_csv(compte):
     def analyse(self_, fichier):
