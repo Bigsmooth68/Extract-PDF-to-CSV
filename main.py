@@ -119,7 +119,9 @@ def main():
         # Selection des fichiers
         for file in sorted(filtered_pdf_files):
             logging.debug(f"Fichier trouvé: {file.name}")
-            if flag_cc and ("EUROCOMPTE" in file.name): # or "COMPTEDEDEPOTS" in file.name):
+            if flag_cc and (
+                "EUROCOMPTE" in file.name
+            ):  # or "COMPTEDEDEPOTS" in file.name):
                 fichiers_cc.append(file)
             elif flag_pea and "Portefeuille valoris" in file.name:
                 fichiers_pea.append(file)
@@ -133,7 +135,7 @@ def main():
         # Pause
         if logging.getLogger().isEnabledFor(logging.DEBUG):
             input("Appuyez sur Entrée pour continuer...")
-            
+
         if args.un:
             if flag_cc:
                 fichiers_cc = [fichiers_cc[0]]
@@ -180,14 +182,12 @@ def main():
             print(csv)
             csv.generer_insert(file.name[:-4])
 
-
     if args.out == "sql":
-
         load_dotenv()
         DB_URL = os.environ.get("DB_URL")
         engine = create_engine(url=DB_URL)
         logging.info("Connecté à la base de données")
-        
+
         if flag_livret:
             epargne.generer_sql(engine, "epargne")
         if flag_pea:

@@ -24,11 +24,10 @@ class compte_csv(compte):
         # Lecture du fichier csv
         df = pd.read_csv(fichier, sep=",", encoding="utf-8")
 
-
         for line in df.itertuples(index=False):
             logging.info(f"Analyse de la ligne: {line}")
 
-            date_solde = pd.Timestamp(line.date) 
+            date_solde = pd.Timestamp(line.date)
 
             self_.ajout_solde(
                 date_solde, numero_compte, "AV", line.solde, aligne_date=False
@@ -37,6 +36,6 @@ class compte_csv(compte):
         logging.info(f"Lignes CSV trouvées: {compte_solde}")
 
         self_.analyse_finie(fichier)
-    
+
     def __repr__(self):
         return f"{self.lignes}"
